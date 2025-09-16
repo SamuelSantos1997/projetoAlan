@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seletor de Treinos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/views/treinos/css/styles.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <h1>Seletor de Treinos</h1>
+        <div id="selection-badge-container"></div>
+    </header>
+
+    <main>
+        <section id="workout-levels" class="workout-grid" aria-label="Níveis de Treino"></section>
+    </main>
+
+    <!-- Modal Structure (hidden by default) -->
+    <div id="workout-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+        <div class="modal-content" role="document">
+            <header class="modal-header">
+                <h2 id="modal-title"></h2>
+                <button id="modal-close-button" class="close-button" aria-label="Fechar modal">&times;</button>
+            </header>
+            <div class="modal-body">
+                <p id="modal-summary"></p>
+                <h3>Grupos Musculares</h3>
+                <div id="modal-muscle-groups" class="muscle-groups-container"></div>
+            </div>
+            <footer class="modal-footer">
+                <button id="modal-cancel-button" class="button-secondary">Fechar</button>
+                <button id="modal-select-button" class="button-primary">Selecionar este treino</button>
+            </footer>
+        </div>
+    </div>
+
+    <script src="/views/treinos/js/app.js"></script>
+</body>
+</html>
+

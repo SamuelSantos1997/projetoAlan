@@ -1,0 +1,43 @@
+
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FitPanel — Frequência</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/base.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head><body>
+<div id="navbar"></div>
+<script src="/assets/js/injectNavbar.js"></script>
+
+<div class="container">
+  <div class="grid grid-3">
+    <div class="card kpi"><h3>Treinos no período</h3><div class="value" id="kpi-treinos">0</div></div>
+    <div class="card kpi"><h3>Média de tempo</h3><div class="value" id="kpi-duracao">0 min</div></div>
+    <div class="card kpi"><h3>Média de calorias</h3><div class="value" id="kpi-kcal">0 kcal</div></div>
+  </div>
+
+  <div class="grid" style="margin-top:16px">
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:8px">Frequência</h2>
+      <canvas id="chart-frequencia" height="110"></canvas>
+    </div>
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:8px">Duração dos treinos</h2>
+      <canvas id="chart-duracao" height="110"></canvas>
+    </div>
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:8px">Gasto calórico</h2>
+      <canvas id="chart-kcal" height="110"></canvas>
+    </div>
+  </div>
+</div>
+<footer>Use as abas para navegar • Treinos abre em nova aba</footer>
+
+<script type="module">
+  import { renderCharts, mountKPIs } from "/controllers/frequenciaController.js";
+  import "/models/data.js";
+  mountKPIs();
+  renderCharts();
+</script>
+</body></html>

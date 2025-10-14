@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Perfil</title>
+  <link rel="stylesheet" href="./perfil.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/base.css">
+</head>
+<body>
+  <div id="navbar"></div>
+  <main class="container">
+    <header class="header">
+      <h1>Meu perfil</h1>
+      <p class="subtitle">Gerencie sua foto e seus dados pessoais</p>
+    </header>
+
+    <section class="card">
+      <div class="avatar-block">
+        <div class="avatar">
+          <img id="avatarPreview" src="./img/avatar-placeholder.svg" alt="Foto do perfil" />
+        </div>
+        <div class="avatar-actions">
+          <label class="btn" for="avatarInput">Adicionar/Alterar foto</label>
+          <input id="avatarInput" type="file" accept="image/*" hidden />
+          <button id="removerFoto" class="btn btn-secondary" type="button">Remover</button>
+        </div>
+        <p class="hint">PNG/JPG até 5MB. A imagem será recortada para formato circular.</p>
+      </div>
+
+      <form id="perfilForm" class="form">
+        <div class="grid">
+          <div class="field">
+            <label for="nomeCompleto">Nome completo</label>
+            <input id="nomeCompleto" name="nomeCompleto" type="text" placeholder="Seu nome e sobrenome" required />
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="voce@exemplo.com" required />
+          </div>
+
+          <div class="field">
+            <label for="telefone">Telefone</label>
+            <input id="telefone" name="telefone" type="tel" placeholder="(00) 00000-0000" />
+          </div>
+
+          <div class="field">
+            <label for="cpf">CPF</label>
+            <input id="cpf" name="cpf" type="text" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" />
+          </div>
+
+          <div class="field field-full">
+            <label for="endereco">Endereço</label>
+            <input id="endereco" name="endereco" type="text" placeholder="Rua, número, complemento, bairro, cidade/UF" />
+          </div>
+
+          <div class="field">
+            <label for="dataNascimento">Data de nascimento</label>
+            <input id="dataNascimento" name="dataNascimento" type="date" />
+          </div>
+
+          <div class="field field-checkbox">
+            <label class="check">
+              <input id="isPremium" name="isPremium" type="checkbox" />
+              <span>Sou Premium</span>
+            </label>
+          </div>
+
+          <div class="field" id="premiumAteWrapper" hidden>
+            <label for="premiumAte">Premium até</label>
+            <input id="premiumAte" name="premiumAte" type="date" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" type="button" id="btnReset">Cancelar</button>
+          <button class="btn" type="submit">Salvar alterações</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="./perfil.js"></script>
+  <script src="/assets/js/injectNavbar.js"></script>
+</body>
+</html>

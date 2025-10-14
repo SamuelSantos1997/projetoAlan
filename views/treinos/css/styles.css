@@ -1,0 +1,356 @@
+/* --- Variáveis Globais e Reset --- */
+:root {
+    --color-primary: #007bff;
+    --color-primary-hover: #0056b3;
+    --color-background: #f8f9fa;
+    --color-surface: #ffffff;
+    --color-text-primary: #212529;
+    --color-text-secondary: #6c757d;
+    --font-family: 'Inter', sans-serif;
+    --border-radius: 16px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    line-height: 1.6;
+}
+
+/* --- Cabeçalho e Badge --- */
+.main-header {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.main-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.selection-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: var(--color-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    font-weight: 600;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.clear-selection-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 1.2rem;
+    line-height: 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.clear-selection-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* --- Grid de Treinos --- */
+.workout-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .workout-grid {
+        grid-template-columns: repeat(3, 1fr);
+        padding: 2rem;
+    }
+}
+
+/* --- Card de Nível --- */
+.level-card {
+    background-color: var(--color-surface);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    border: 1px solid #e9ecef;
+}
+
+.level-card:hover, .level-card:focus-visible {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-hover);
+    outline: 2px solid var(--color-primary);
+    outline-offset: 4px;
+}
+
+.level-card .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.level-card h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.level-card p {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+}
+
+/* --- Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay:not([hidden]) {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: var(--color-surface);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay:not([hidden]) .modal-content {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+}
+
+.modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.modal-body h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: var(--color-text-primary);
+}
+
+.muscle-groups-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.muscle-group-tag {
+    background-color: #e9ecef;
+    color: var(--color-text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+/* --- Lista de Exercícios --- */
+.exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.exercise-item {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border-left: 4px solid var(--color-primary);
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.exercise-image {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #e9ecef;
+}
+
+.exercise-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.exercise-info {
+    flex: 1;
+}
+
+.exercise-info h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+}
+
+.exercise-series {
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 0.25rem;
+}
+
+.exercise-details {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .exercise-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .exercise-image {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+    }
+}
+
+/* --- Tags Clicáveis --- */
+.clickable-tag {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.clickable-tag:hover {
+    background-color: var(--color-primary-hover);
+    transform: translateY(-1px);
+}
+
+.clickable-tag:active {
+    transform: translateY(0);
+}
+
+/* --- Botão de Voltar --- */
+.back-button {
+    margin-top: 1rem;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* --- Botões --- */
+.button-primary, .button-secondary {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.button-primary {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.button-primary:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.button-secondary {
+    background-color: #e9ecef;
+    color: var(--color-text-primary);
+}
+
+.button-secondary:hover {
+    background-color: #ced4da;
+}
+
+/* --- Animações e Acessibilidade --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Foco visível para navegação por teclado */
+*:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+

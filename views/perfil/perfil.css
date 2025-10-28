@@ -1,3 +1,5 @@
+/* === PERFIL (alinhado ao padrão do PESSOAL) === */
+
 :root{
   --bg: var(--bg, #0b0c10);
   --panel: var(--panel, #111318);
@@ -37,13 +39,16 @@ body{
   font-size: 14px;
 }
 
-.card{
+/* Importante: segue o padrão do pessoal (escopo no main) */
+main .card{
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.0)) , var(--card);
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
+
+/* -------- Componentes da página Perfil -------- */
 
 .avatar-block{
   display: grid;
@@ -70,6 +75,7 @@ body{
 .hint{ grid-area: hint; color: var(--muted); font-size: 12px; margin: 0; }
 
 .form{ margin-top: 8px; }
+
 .grid{
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -78,6 +84,7 @@ body{
 .field{ display:flex; flex-direction:column; gap:8px; }
 .field-full{ grid-column: 1 / -1; }
 .field label{ font-size: 13px; color: var(--muted); }
+
 .field input[type="text"],
 .field input[type="email"],
 .field input[type="tel"],
@@ -99,6 +106,7 @@ body{
 .check{ display:flex; align-items:center; gap:10px; user-select:none; cursor:pointer; }
 .check input{ width:18px; height:18px; }
 
+/* Botões (compatível com Premium/Padrão) */
 .actions{
   display:flex; gap:10px; justify-content:flex-end;
   margin-top: 14px;
@@ -122,6 +130,14 @@ body{
   border: 1px solid var(--border);
 }
 
+/* Garante consistência da navbar quando ativa nesta página */
+#navbar .nav-links a.active{
+  background: var(--primary);
+  color: #0b1220;
+  border-color: transparent;
+}
+
+/* Responsivo */
 @media (max-width: 760px){
   .avatar-block{
     grid-template-columns: 1fr;

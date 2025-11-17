@@ -1,5 +1,20 @@
-const CLIENTE_ID = 1;
-const BFF_CLIENTES_BASE = "http://localhost:8090";
+const BFF_CLIENTES_BASE = "http://localhost:8080";
+
+// Obter ID do usuário logado
+function getLoggedUserId() {
+  const userId = localStorage.getItem("userId");
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+  if (!isLoggedIn || !userId) {
+    // Redirecionar para login se não estiver logado
+    window.location.href = "/views/login/index.html";
+    return null;
+  }
+
+  return parseInt(userId);
+}
+
+const CLIENTE_ID = getLoggedUserId();
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -175,6 +190,21 @@ form.addEventListener("submit", async (e) => {
 $("#btnReset").addEventListener("click", () => {
   loadPerfil();
 });
+
+// logout
+function logout() {
+  localStorage.removeItem("userId");
+  localStorage.removeItem("userName");
+  localStorage.removeItem("userEmail");
+  localStorage.removeItem("isLoggedIn");
+  window.location.href = "/views/login/index.html";
+}
+
+// Se houver botão de logout, adicionar evento
+const btnLogout = document.getElementById("btnLogout");
+if (btnLogout) {
+  btnLogout.addEventListener("click", logout);
+}
 
 // init
 document.addEventListener("DOMContentLoaded", () => {

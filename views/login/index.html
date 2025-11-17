@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login - FitPanel</title>
+  <link rel="stylesheet" href="./login.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="container">
+    <div class="login-wrapper">
+      <div class="logo-section">
+        <h1 class="logo">FitPanel</h1>
+        <p class="tagline">Seu painel de academia completo</p>
+      </div>
+
+      <section class="card">
+        <header class="header">
+          <h2>Bem-vindo de volta</h2>
+          <p class="subtitle">Entre com suas credenciais para acessar</p>
+        </header>
+
+        <form id="loginForm" class="form">
+          <div class="field">
+            <label for="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="voce@exemplo.com"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="field">
+            <label for="senha">Senha</label>
+            <input
+              id="senha"
+              name="senha"
+              type="password"
+              placeholder="Digite sua senha"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <div id="errorMessage" class="error-message" hidden></div>
+
+          <button class="btn btn-primary" type="submit" id="btnLogin">
+            Entrar
+          </button>
+        </form>
+
+        <div class="footer-links">
+          <p>Ainda não tem uma conta? <a href="/views/cadastro/index.html" class="link">Cadastre-se</a></p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="./login.js"></script>
+</body>
+</html>

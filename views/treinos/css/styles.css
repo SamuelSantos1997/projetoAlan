@@ -1,15 +1,17 @@
 /* --- Variáveis Globais e Reset --- */
 :root {
-    --color-primary: #007bff;
-    --color-primary-hover: #0056b3;
-    --color-background: #f8f9fa;
-    --color-surface: #ffffff;
-    --color-text-primary: #212529;
-    --color-text-secondary: #6c757d;
+    --color-primary: #22c55e;
+    --color-primary-hover: #16a34a;
+    --color-background: #0b1220;
+    --color-surface: #121a2a;
+    --color-surface-2: #0f1626;
+    --color-text-primary: #e5e7eb;
+    --color-text-secondary: #9ca3af;
+    --color-border: #1f2a3d;
     --font-family: 'Inter', sans-serif;
     --border-radius: 16px;
-    --shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.15);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -20,9 +22,10 @@
 
 body {
     font-family: var(--font-family);
-    background-color: var(--color-background);
+    background: linear-gradient(180deg, #0b1220, #0b1220 30%, #0f172a 100%);
     color: var(--color-text-primary);
     line-height: 1.6;
+    min-height: 100vh;
 }
 
 /* --- Cabeçalho e Badge --- */
@@ -42,7 +45,7 @@ body {
     align-items: center;
     gap: 0.75rem;
     background-color: var(--color-primary);
-    color: white;
+    color: #0b1220;
     padding: 0.5rem 1rem;
     border-radius: 99px;
     font-weight: 600;
@@ -50,8 +53,8 @@ body {
 }
 
 .clear-selection-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    background: rgba(11, 18, 32, 0.2);
+    color: #0b1220;
     border: none;
     border-radius: 50%;
     width: 24px;
@@ -63,7 +66,7 @@ body {
 }
 
 .clear-selection-btn:hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(11, 18, 32, 0.4);
 }
 
 /* --- Grid de Treinos --- */
@@ -85,14 +88,14 @@ body {
 
 /* --- Card de Nível --- */
 .level-card {
-    background-color: var(--color-surface);
+    background: linear-gradient(180deg, var(--color-surface), var(--color-surface-2));
     border-radius: var(--border-radius);
     padding: 2rem;
     text-align: center;
     box-shadow: var(--shadow);
     cursor: pointer;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--color-border);
 }
 
 .level-card:hover, .level-card:focus-visible {
@@ -141,7 +144,8 @@ body {
 }
 
 .modal-content {
-    background-color: var(--color-surface);
+    background: linear-gradient(180deg, var(--color-surface), var(--color-surface-2));
+    border: 1px solid var(--color-border);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
     width: 90%;
@@ -162,7 +166,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .modal-header h2 {
@@ -197,8 +201,9 @@ body {
 }
 
 .muscle-group-tag {
-    background-color: #e9ecef;
-    color: var(--color-text-primary);
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
     padding: 0.5rem 1rem;
     border-radius: 99px;
     font-size: 0.9rem;
@@ -207,7 +212,7 @@ body {
 
 .modal-footer {
     padding: 1.5rem;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--color-border);
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
@@ -222,7 +227,8 @@ body {
 }
 
 .exercise-item {
-    background-color: #f8f9fa;
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     padding: 1rem;
     border-left: 4px solid var(--color-primary);
@@ -237,7 +243,7 @@ body {
     height: 80px;
     border-radius: 8px;
     overflow: hidden;
-    background-color: #e9ecef;
+    background-color: var(--color-surface);
 }
 
 .exercise-image img {
@@ -286,10 +292,11 @@ body {
 /* --- Tags Clicáveis --- */
 .clickable-tag {
     background-color: var(--color-primary);
-    color: white;
+    color: #0b1220;
     border: none;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
+    font-weight: 600;
 }
 
 .clickable-tag:hover {
@@ -325,7 +332,7 @@ body {
 
 .button-primary {
     background-color: var(--color-primary);
-    color: white;
+    color: #0b1220;
 }
 
 .button-primary:hover {
@@ -333,12 +340,14 @@ body {
 }
 
 .button-secondary {
-    background-color: #e9ecef;
+    background-color: var(--color-surface-2);
     color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
 }
 
 .button-secondary:hover {
-    background-color: #ced4da;
+    background-color: var(--color-surface);
+    filter: brightness(1.1);
 }
 
 /* --- Animações e Acessibilidade --- */

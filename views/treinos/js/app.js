@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const BFF_CLIENTES_BASE = "http://localhost:8000";
+    const BFF_CLIENTES_BASE = "http://localhost:8080";
 
     // Obter ID do usuário logado
     function getLoggedUserId() {
@@ -1237,7 +1237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const resp = await fetch(`${BFF_CLIENTES_BASE}/api/bff/frequencias`, {
+            const resp = await fetch(`${BFF_CLIENTES_BASE}/bff/frequencias`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

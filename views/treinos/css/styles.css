@@ -364,3 +364,131 @@ body {
     border-radius: 4px;
 }
 
+/* --- Tela de Treino em Andamento --- */
+.current-workout-view {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.current-workout-header {
+    background: linear-gradient(180deg, var(--color-surface), var(--color-surface-2));
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    border: 1px solid var(--color-border);
+    margin-bottom: 2rem;
+}
+
+.current-workout-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--color-text-primary);
+}
+
+.current-workout-timer {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+}
+
+.current-workout-timer #workout-timer {
+    display: inline-block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+    margin-left: 0.5rem;
+}
+
+.current-workout-exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.current-workout-footer {
+    position: sticky;
+    bottom: 1rem;
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(180deg, transparent, var(--color-background) 30%);
+}
+
+.current-workout-footer .button-primary {
+    padding: 1rem 3rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    transition: all 0.3s ease;
+}
+
+.current-workout-footer .button-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+}
+
+.current-workout-footer .button-primary:active {
+    transform: translateY(0);
+}
+
+/* Badge de treino em andamento */
+.selection-badge.in-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: linear-gradient(135deg, var(--color-primary), #16a34a);
+    color: #0b1220;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    animation: fadeIn 0.3s ease-out;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+}
+
+.selection-badge.in-progress strong {
+    font-weight: 800;
+}
+
+.selection-badge.in-progress .button-primary {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    background: rgba(11, 18, 32, 0.2);
+    color: #0b1220;
+    border: 1px solid rgba(11, 18, 32, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.selection-badge.in-progress .button-primary:hover {
+    background: rgba(11, 18, 32, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .current-workout-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .current-workout-timer #workout-timer {
+        font-size: 2rem;
+    }
+
+    .selection-badge.in-progress {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+

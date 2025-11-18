@@ -1,4 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    const BFF_CLIENTES_BASE = "http://localhost:8000";
+
+    // Obter ID do usuário logado
+    function getLoggedUserId() {
+        const userId = localStorage.getItem("userId");
+        const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+        if (!isLoggedIn || !userId) {
+            window.location.href = "/views/login/index.html";
+            return null;
+        }
+
+        return parseInt(userId);
+    }
+
+    // Mapeia o id do nível textual para o enum esperado pelo backend
+    function mapLevelIdToEnum(levelId) {
+        switch (levelId) {
+            case "iniciante":
+                return "INICIANTE";
+            case "medio":
+                return "INTERMEDIARIO";
+            case "avancado":
+                return "AVANCADO";
+            default:
+                return "INICIANTE";
+        }
+    }
+
+    // IDs estáticos de treinos com base nos treinos definidos neste front
+    function mapWorkoutToTreinoId(levelId, workoutType) {
+        const key = `${levelId}::${workoutType}`;
+        const mapping = {
+            "iniciante::Treino A": 1,
+            "iniciante::Treino B": 2,
+            "iniciante::Treino C": 3,
+            "medio::Peito & Costas": 4,
+            "medio::Bíceps & Tríceps": 5,
+            "medio::Pernas": 6,
+            "medio::Ombros": 7,
+            "medio::Core & Abdômen": 8,
+            "medio::Glúteo": 9,
+            "avancado::Peito & Costas": 10,
+            "avancado::Bíceps & Tríceps": 11,
+            "avancado::Pernas": 12,
+            "avancado::Ombros": 13,
+            "avancado::Core & Abdômen": 14,
+            "avancado::Glúteo": 15
+        };
+
+        return mapping[key] || 0;
+    }
+
     // --- Dados da Aplicação ---
     const workoutData = {
         niveles: [
@@ -837,12 +891,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let focusableElements = [];
     let firstFocusableElement, lastFocusableElement;
 
+    // --- Estado do treino em andamento / timer ---
+    let currentTimerInterval = null;
+    let workoutStartTime = null;
+    let currentWorkoutInProgress = null; // { userId, levelId, workoutType, startTimeISO }
+    let isWorkoutInProgress = false;
+
     // --- Funções ---
 
     /**
      * Renderiza os cards de nível na tela.
      */
     function renderLevelCards() {
+        // Se há treino em andamento, não mostra os cards
+        if (isWorkoutInProgress && currentWorkoutInProgress) {
+            renderCurrentWorkoutViewFromState();
+            return;
+        }
+
         workoutGrid.innerHTML = '';
         workoutData.niveles.forEach(level => {
             const card = document.createElement('div');
@@ -875,7 +941,14 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} levelId - O ID do nível a ser exibido.
      */
     function openModal(levelId) {
+        if (isWorkoutInProgress) {
+            // Se o treino está em andamento, mantemos a experiência focada na tela de treino
+            return;
+        }
+
         currentLevelId = levelId;
+        currentWorkoutType = null;
+        configureModalForSelection();
         const level = workoutData.niveles.find(l => l.id === levelId);
         if (!level) return;
 
@@ -917,13 +990,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Abre os detalhes de um treino específico
-     * @param {string} workoutType - O tipo de treino (A, B ou C)
+     * Abre os detalhes de um treino específico no modal
+     * @param {string} workoutType - O tipo de treino (A, B, C ou nome)
      */
     function openWorkoutDetails(workoutType) {
         currentWorkoutType = workoutType;
         const level = workoutData.niveles.find(l => l.id === currentLevelId);
-        const treino = level.treinos[workoutType];
+        const treino = level?.treinos?.[workoutType];
         
         if (!treino) return;
 
@@ -976,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.removeEventListener('keydown', trapFocus);
         // Devolve o foco para o card que abriu o modal
         const cardToFocus = workoutGrid.querySelector(`[data-level-id="${currentLevelId}"]`);
-        if (cardToFocus) {
+        if (cardToFocus && !isWorkoutInProgress) {
             cardToFocus.focus();
         }
     }
@@ -987,7 +1060,9 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function trapFocus(e) {
         if (e.key === 'Escape') {
-            closeModal();
+            if (!isWorkoutInProgress) {
+                closeModal();
+            }
             return;
         }
 
@@ -1007,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Salva a seleção no localStorage e atualiza a UI.
+     * Salva a seleção no localStorage (sem iniciar treino).
      */
     function selectWorkout() {
         const selection = {
@@ -1021,21 +1096,294 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Exibe o badge do treino selecionado com base no localStorage.
+     * Inicia o cronômetro do treino em andamento.
+     */
+    function startTimer() {
+        if (!workoutStartTime) return;
+
+        if (currentTimerInterval) {
+            clearInterval(currentTimerInterval);
+        }
+
+        currentTimerInterval = setInterval(() => {
+            const now = new Date();
+            const diffMs = now - workoutStartTime;
+            const totalSeconds = Math.floor(diffMs / 1000);
+
+            const horas = Math.floor(totalSeconds / 3600);
+            const minutos = Math.floor((totalSeconds % 3600) / 60);
+            const segundos = totalSeconds % 60;
+
+            const timerEl = document.getElementById('workout-timer');
+            if (timerEl) {
+                timerEl.textContent = [
+                    String(horas).padStart(2, '0'),
+                    String(minutos).padStart(2, '0'),
+                    String(segundos).padStart(2, '0')
+                ].join(':');
+            }
+        }, 1000);
+    }
+
+    /**
+     * Renderiza na TELA PRINCIPAL o treino em andamento:
+     * - Título + timer em cima
+     * - Lista de exercícios
+     * - Botão "Finalizar treino" embaixo
+     */
+    function renderCurrentWorkoutViewFromState() {
+        if (!currentWorkoutInProgress) {
+            return;
+        }
+
+        const level = workoutData.niveles.find(l => l.id === currentWorkoutInProgress.levelId);
+        const treino = level?.treinos?.[currentWorkoutInProgress.workoutType];
+        if (!level || !treino) {
+            return;
+        }
+
+        isWorkoutInProgress = true;
+
+        // Monta a tela completa do treino dentro do workoutGrid
+        workoutGrid.innerHTML = '';
+
+        const container = document.createElement('div');
+        container.className = 'current-workout-view';
+
+        container.innerHTML = `
+            <div class="current-workout-header">
+                <h2>${level.nome} — ${treino.nome}</h2>
+                <div class="current-workout-timer">
+                    Tempo de treino: <span id="workout-timer">00:00:00</span>
+                </div>
+            </div>
+            <div class="exercise-list current-workout-exercise-list"></div>
+            <div class="current-workout-footer">
+                <button id="finish-workout-main-button" class="button-primary">
+                    Finalizar treino
+                </button>
+            </div>
+        `;
+
+        workoutGrid.appendChild(container);
+
+        const exerciseListEl = container.querySelector('.current-workout-exercise-list');
+
+        treino.exercicios.forEach(exercicio => {
+            const exerciseItem = document.createElement('div');
+            exerciseItem.className = 'exercise-item';
+            exerciseItem.innerHTML = `
+                <div class="exercise-image">
+                    <img src="${exercicio.imagem}" alt="${exercicio.nome}" loading="lazy" onerror="this.style.display='none'">
+                </div>
+                <div class="exercise-info">
+                    <h4>${exercicio.nome}</h4>
+                    <p class="exercise-series">${exercicio.series}</p>
+                    <p class="exercise-details">${exercicio.detalhes}</p>
+                </div>
+            `;
+            exerciseListEl.appendChild(exerciseItem);
+        });
+
+        const finishBtn = document.getElementById('finish-workout-main-button');
+        finishBtn.addEventListener('click', finalizarTreino);
+    }
+
+    /**
+     * Finaliza o treino atual, calcula a duração e envia para o BFF (frequências).
+     */
+    async function finalizarTreino() {
+        if (!currentWorkoutInProgress || !workoutStartTime) {
+            alert("Nenhum treino em andamento.");
+            return;
+        }
+
+        const endTime = new Date();
+        const diffMs = endTime - workoutStartTime;
+        const totalSeconds = Math.floor(diffMs / 1000);
+
+        // Calcular duração total em minutos (arredondado)
+        const duracaoMinutos = Math.round(totalSeconds / 60);
+
+        const userId = currentWorkoutInProgress.userId;
+        const treinoId = mapWorkoutToTreinoId(
+            currentWorkoutInProgress.levelId,
+            currentWorkoutInProgress.workoutType
+        );
+        const nivelTreinoEnum = mapLevelIdToEnum(currentWorkoutInProgress.levelId);
+
+        // Formatar data no padrão do banco: "yyyy-MM-dd" (apenas data, sem hora)
+        const year = endTime.getFullYear();
+        const month = String(endTime.getMonth() + 1).padStart(2, '0');
+        const day = String(endTime.getDate()).padStart(2, '0');
+        const data = `${year}-${month}-${day}`;
+
+        const payload = {
+            usuarioId: userId,
+            treino: String(treinoId),
+            duracao: duracaoMinutos,
+            data: data,
+            nivel: nivelTreinoEnum
+        };
+
+        console.log("Payload enviado para o BFF:", payload);
+
+        // Obter token de autenticação
+        const token = localStorage.getItem('userToken');
+        if (!token) {
+            alert("Token de autenticação não encontrado. Faça login novamente.");
+            window.location.href = "/views/login/index.html";
+            return;
+        }
+
+        try {
+            const resp = await fetch(`${BFF_CLIENTES_BASE}/api/bff/frequencias`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const json = await resp.json();
+            console.log("Resposta do BFF:", json);
+
+            if (!resp.ok || !json.success) {
+                console.error("Erro completo:", json);
+                throw new Error(json.message || "Falha ao registrar frequência");
+            }
+
+            alert("Treino finalizado e frequência registrada com sucesso!");
+        } catch (err) {
+            console.error("Erro ao finalizar treino:", err);
+            alert("Erro ao registrar frequência: " + err.message);
+        } finally {
+            if (currentTimerInterval) {
+                clearInterval(currentTimerInterval);
+                currentTimerInterval = null;
+            }
+            workoutStartTime = null;
+            currentWorkoutInProgress = null;
+            localStorage.removeItem('currentWorkout');
+            isWorkoutInProgress = false;
+
+            // Atualiza o badge (agora sem treino em andamento)
+            displaySelectionBadge();
+
+            // Fecha o modal (caso esteja aberto) e volta para o estado normal de seleção
+            closeModal();
+            configureModalForSelection();
+
+            // Volta a mostrar a tela de níveis
+            renderLevelCards();
+        }
+    }
+
+    /**
+     * Inicia o treino a partir do modal:
+     * - exige usuário logado
+     * - salva a seleção e o estado de treino em andamento
+     * - fecha o modal e leva o treino para a TELA PRINCIPAL
+     */
+    function startWorkout() {
+        const userId = getLoggedUserId();
+        if (!userId) return;
+
+        if (!currentLevelId || !currentWorkoutType) {
+            alert("Selecione um treino primeiro.");
+            return;
+        }
+
+        // Salva a seleção atual (histórico / badge)
+        const selection = {
+            levelId: currentLevelId,
+            workoutType: currentWorkoutType,
+            dateISO: new Date().toISOString()
+        };
+        localStorage.setItem('workoutSelection', JSON.stringify(selection));
+
+        // Marca o início do treino
+        workoutStartTime = new Date();
+        currentWorkoutInProgress = {
+            userId,
+            levelId: currentLevelId,
+            workoutType: currentWorkoutType,
+            startTimeISO: workoutStartTime.toISOString()
+        };
+        localStorage.setItem('currentWorkout', JSON.stringify(currentWorkoutInProgress));
+
+        // Marca que há treino em andamento
+        isWorkoutInProgress = true;
+
+        // Atualiza o badge lá em cima (treino em andamento)
+        displaySelectionBadge();
+
+        // Fecha o modal
+        closeModal();
+
+        // Renderiza o treino na TELA PRINCIPAL
+        renderCurrentWorkoutViewFromState();
+
+        // Inicia o timer (usa o elemento #workout-timer da tela principal)
+        startTimer();
+    }
+
+    /**
+     * Exibe o badge do treino selecionado / em andamento com base no localStorage.
      */
     function displaySelectionBadge() {
-        const savedSelection = localStorage.getItem('workoutSelection');
         badgeContainer.innerHTML = '';
 
+        // 1) Verifica se há treino em andamento salvo
+        const savedCurrent = localStorage.getItem('currentWorkout');
+        if (savedCurrent) {
+            try {
+                const current = JSON.parse(savedCurrent);
+                const level = workoutData.niveles.find(l => l.id === current.levelId);
+                if (level && current.workoutType) {
+                    currentWorkoutInProgress = current;
+                    workoutStartTime = new Date(current.startTimeISO);
+                    isWorkoutInProgress = true;
+
+                    const badge = document.createElement('div');
+                    badge.className = 'selection-badge in-progress';
+                    badge.innerHTML = `
+                        <div>
+                            <strong>Treino em andamento</strong><br>
+                            ${level.nome} — ${current.workoutType}
+                        </div>
+                        <button id="finish-workout-badge-button" class="button-primary">
+                            Finalizar treino
+                        </button>
+                    `;
+                    badgeContainer.appendChild(badge);
+
+                    const finishBtn = document.getElementById('finish-workout-badge-button');
+                    finishBtn.addEventListener('click', finalizarTreino);
+
+                    // Aqui NÃO chamamos startTimer; ele será chamado quando a tela
+                    // de treino for renderizada (tem o #workout-timer).
+                    return;
+                }
+            } catch (e) {
+                console.error("Erro ao restaurar treino em andamento:", e);
+                localStorage.removeItem('currentWorkout');
+            }
+        }
+
+        // 2) Se não houver treino em andamento, exibe apenas o treino selecionado
+        isWorkoutInProgress = false;
+        const savedSelection = localStorage.getItem('workoutSelection');
         if (savedSelection) {
             const { levelId, workoutType } = JSON.parse(savedSelection);
             const level = workoutData.niveles.find(l => l.id === levelId);
             if (level) {
                 const badge = document.createElement('div');
                 badge.className = 'selection-badge';
-                const displayText = workoutType ? 
-                    `Treino selecionado: ${level.nome} - ${workoutType}` : 
-                    `Treino selecionado: ${level.nome}`;
+                const displayText = workoutType
+                    ? `Treino selecionado: ${level.nome} - ${workoutType}`
+                    : `Treino selecionado: ${level.nome}`;
                 badge.innerHTML = `
                     <span>${displayText}</span>
                     <button class="clear-selection-btn" aria-label="Limpar seleção">&times;</button>
@@ -1052,23 +1400,67 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function clearSelection() {
         localStorage.removeItem('workoutSelection');
+        localStorage.removeItem('currentWorkout');
+
+        if (currentTimerInterval) {
+            clearInterval(currentTimerInterval);
+            currentTimerInterval = null;
+        }
+
+        workoutStartTime = null;
+        currentWorkoutInProgress = null;
+        isWorkoutInProgress = false;
+
         displaySelectionBadge();
+        renderLevelCards();
+    }
+
+    function configureModalForSelection() {
+        // Estado normal: só escolhendo treino
+        isWorkoutInProgress = !!currentWorkoutInProgress && !!workoutStartTime;
+        modal.classList.remove('in-progress');
+
+        cancelButton.style.display = '';
+        selectButton.textContent = 'Iniciar Treino';
+        selectButton.disabled = false;
+        selectButton.onclick = startWorkout; // clique vai iniciar o treino
+    }
+
+    function configureModalForInProgress() {
+        // Nesta versão, não usamos mais o modal durante o treino,
+        // mas deixo a função caso precise no futuro.
+        isWorkoutInProgress = true;
+        modal.classList.add('in-progress');
+
+        cancelButton.style.display = 'none';
+        selectButton.textContent = 'Finalizar treino';
+        selectButton.disabled = false;
+        selectButton.onclick = finalizarTreino;
     }
 
     // --- Inicialização e Event Listeners ---
 
-    renderLevelCards();
+    // Primeiro, tenta restaurar o badge e o estado de treino
     displaySelectionBadge();
 
-    selectButton.addEventListener('click', selectWorkout);
+    // Se houver treino em andamento, já renderiza a tela de treino + timer
+    if (currentWorkoutInProgress && workoutStartTime) {
+        renderCurrentWorkoutViewFromState();
+        startTimer();
+    } else {
+        // Caso contrário, mostra os níveis normalmente
+        renderLevelCards();
+    }
+
+    configureModalForSelection(); // garante que o botão começa como "Iniciar Treino" quando o modal for aberto
+
     closeButton.addEventListener('click', closeModal);
     cancelButton.addEventListener('click', closeModal);
-
-    // Fecha o modal ao clicar fora do conteúdo
+    
+    // Fecha o modal ao clicar fora do conteúdo (quando não há treino em andamento)
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
+        if (e.target === modal && !isWorkoutInProgress) {
             closeModal();
         }
     });
 });
-

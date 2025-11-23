@@ -31,12 +31,19 @@
       <canvas id="chart-kcal" height="110"></canvas>
     </div>
   </div>
+
+  <div class="grid" style="margin-top:16px">
+    <div class="card" style="padding:26px; max-width: 900px; margin: 26px auto 0;">
+      <h2 style="margin-bottom:8px; text-align: center;">Grupos Musculares Treinados</h2>
+      <canvas id="chart-grupos" height="80"></canvas>
+    </div>
+  </div>
 </div>
 <footer>Use as abas para navegar entre as seções</footer>
 
 <script type="module">
   import { renderCharts, mountKPIs } from "/controllers/frequenciaController.js";
-  import "/models/data.js";
+  // Não precisa mais importar data.js - dados vêm do backend
   mountKPIs();
   renderCharts();
 </script>

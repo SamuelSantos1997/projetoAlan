@@ -1,4 +1,4 @@
-const BFF_CLIENTES_BASE = "http://localhost:8080";
+const BFF_BASE_URL = "http://localhost:8000/api";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -63,7 +63,7 @@ if (cpfInput) {
 
 // Função de cadastro
 async function cadastrar(dadosCliente) {
-  const resp = await fetch(`${BFF_CLIENTES_BASE}/bff/auth/cadastro`, {
+  const resp = await fetch(`${BFF_BASE_URL}/bff/auth/cadastro`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dadosCliente)
@@ -109,7 +109,7 @@ form.addEventListener("submit", async (e) => {
     username: email,
     nome: nome,
     email: email,
-    password: senha
+    senha: senha  // BFF espera 'senha', não 'password'
   };
 
   // Adicionar campos opcionais se preenchidos

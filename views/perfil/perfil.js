@@ -1,20 +1,26 @@
-const BFF_CLIENTES_BASE = "http://localhost:8080";
+const BFF_BASE_URL = "http://localhost:8000/api";
 
-// Obter ID do usuário logado
-function getLoggedUserId() {
+// Obter token e ID do usuário logado
+function getLoggedUserData() {
   const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("userToken");
   const isLoggedIn = localStorage.getItem("isLoggedIn");
 
-  if (!isLoggedIn || !userId) {
+  if (!isLoggedIn || !userId || !token) {
     // Redirecionar para login se não estiver logado
     window.location.href = "/views/login/index.html";
     return null;
   }
 
-  return parseInt(userId);
+  return {
+    userId: parseInt(userId),
+    token: token
+  };
 }
 
-const CLIENTE_ID = getLoggedUserId();
+const userData = getLoggedUserData();
+const CLIENTE_ID = userData ? userData.userId : null;
+const AUTH_TOKEN = userData ? userData.token : null;
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -83,27 +89,36 @@ removerFoto.addEventListener("click", () => {
   avatarInput.value = "";
 });
 
-// chamada à API
-async function fetchCliente(id){
-  const resp = await fetch(`${BFF_CLIENTES_BASE}/bff/clientes/${id}`);
+// Buscar dados do usuário autenticado via /api/bff/auth/me
+async function fetchCliente(){
+  const resp = await fetch(`${BFF_BASE_URL}/bff/auth/me`, {
+    headers: {
+      "Authorization": `Bearer ${AUTH_TOKEN}`,
+      "Content-Type": "application/json"
+    }
+  });
+
   const json = await resp.json();
   if (!json.success){
-    throw new Error(json.message || "Erro ao carregar cliente");
+    throw new Error(json.message || "Erro ao carregar perfil");
   }
   return json.data;
 }
 
 async function updateCliente(id, payload){
-  const resp = await fetch(`${BFF_CLIENTES_BASE}/bff/clientes/${id}`, {
+  const resp = await fetch(`${BFF_BASE_URL}/bff/clientes/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Authorization": `Bearer ${AUTH_TOKEN}`,
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify(payload)
   });
 
   const json = await resp.json();
 
   if (!json.success){
-    throw new Error(json.message || "Erro ao salvar cliente");
+    throw new Error(json.message || "Erro ao salvar perfil");
   }
   return json.data;
 }
@@ -132,7 +147,7 @@ function fillForm(cliente){
 async function loadPerfil(){
   try {
     statusCarregando.textContent = "Carregando perfil...";
-    const cli = await fetchCliente(CLIENTE_ID);
+    const cli = await fetchCliente();
     fillForm(cli);
     statusCarregando.textContent = "Perfil carregado ✔";
   } catch (err){
@@ -146,16 +161,14 @@ async function loadPerfil(){
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  // monta payload do cliente com TODOS os campos que o Core agora entende
+  // Monta payload do perfil (apenas campos que o usuário pode editar)
+  // NOTA: premium e premiumAte são gerenciados pelo sistema/admin, não pelo usuário
   const payload = {
     nome: $("#nomeCompleto").value,
-    email: $("#email").value,
     telefone: $("#telefone").value,
     cpf: $("#cpf").value,
     endereco: $("#endereco").value,
     dataNascimento: $("#dataNascimento").value || null,
-    premium: $("#isPremium").checked,
-    premiumAte: $("#premiumAte").value || null,
     avatarDataUrl: (
       avatarPreview.src && !avatarPreview.src.endsWith("avatar-placeholder.svg")
         ? avatarPreview.src
@@ -196,6 +209,7 @@ function logout() {
   localStorage.removeItem("userId");
   localStorage.removeItem("userName");
   localStorage.removeItem("userEmail");
+  localStorage.removeItem("userToken");
   localStorage.removeItem("isLoggedIn");
   window.location.href = "/views/login/index.html";
 }

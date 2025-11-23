@@ -1,4 +1,4 @@
-const BFF_CLIENTES_BASE = "http://localhost:8080";
+const BFF_BASE_URL = "http://localhost:8000/api";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -22,12 +22,12 @@ function hideError() {
 
 // Função de login
 async function login(email, senha) {
-  const resp = await fetch(`${BFF_CLIENTES_BASE}/bff/auth/login`, {
+  const resp = await fetch(`${BFF_BASE_URL}/bff/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      username: email,  // Usando email como username
-      password: senha
+      email: email,  // BFF aceita email no campo 'email'
+      senha: senha
     })
   });
 

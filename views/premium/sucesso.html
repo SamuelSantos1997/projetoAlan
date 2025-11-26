@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FitPanel — Pagamento Confirmado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/views/premium/css/style.css">
+  <style>
+    .success-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      text-align: center;
+      padding: 24px;
+    }
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: #28a745;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      animation: pulse 2s infinite;
+    }
+    .success-icon svg {
+      width: 40px;
+      height: 40px;
+      fill: white;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .success-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #28a745;
+      margin-bottom: 12px;
+    }
+    .success-message {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 24px;
+      max-width: 400px;
+    }
+    .status-info {
+      background: #f8f9fa;
+      padding: 16px 24px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .status-info .label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .status-info .value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #28a745;
+    }
+    .loading-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #666;
+      font-size: 14px;
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ddd;
+      border-top-color: #28a745;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+  <script src="/assets/js/injectNavbar.js"></script>
+
+  <div class="container">
+    <div class="card success-container">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+        </svg>
+      </div>
+
+      <h1 class="success-title">Pagamento Confirmado!</h1>
+
+      <p class="success-message">
+        Seu plano Premium foi ativado com sucesso. Aproveite todos os benefícios exclusivos!
+      </p>
+
+      <div class="status-info">
+        <div class="label">Seu plano</div>
+        <div class="value" id="plan-status">Premium</div>
+      </div>
+
+      <div class="status-info" id="exp-container" style="display:none">
+        <div class="label">Válido até</div>
+        <div class="value" id="plan-exp">—</div>
+      </div>
+
+      <div class="loading-status" id="loading-status">
+        <div class="spinner"></div>
+        <span>Verificando status do pagamento...</span>
+      </div>
+
+      <a href="/views/premium/index.html" class="btn btn-primary" style="margin-top:24px">
+        Ver meu plano
+      </a>
+
+      <a href="/views/treinos/index.html" class="btn" style="margin-top:12px;background:#f0f0f0;color:#333">
+        Explorar treinos
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const BFF_BASE_URL = "http://localhost:8000/api";
+
+    (async function() {
+      const token = localStorage.getItem("userToken");
+      const userId = localStorage.getItem("userId");
+      const loadingStatus = document.getElementById("loading-status");
+      const planStatus = document.getElementById("plan-status");
+      const planExp = document.getElementById("plan-exp");
+      const expContainer = document.getElementById("exp-container");
+
+      if (!token || !userId) {
+        loadingStatus.innerHTML = '<span style="color:#c00">Faça login para verificar seu plano</span>';
+        return;
+      }
+
+      try {
+        // Ativar premium automaticamente (1 mês)
+        loadingStatus.innerHTML = '<div class="spinner"></div><span>Ativando seu plano Premium...</span>';
+
+        const ativarResponse = await fetch(`${BFF_BASE_URL}/bff/clientes/${userId}/premium?ativar=true&meses=1`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (ativarResponse.ok) {
+          const ativarResult = await ativarResponse.json();
+          console.log("Premium ativado:", ativarResult);
+        }
+
+        // Verificar status atualizado
+        const response = await fetch(`${BFF_BASE_URL}/bff/auth/me`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("Falha ao verificar status");
+        }
+
+        const result = await response.json();
+        const user = result.data || result;
+
+        loadingStatus.style.display = "none";
+
+        if (user.premium) {
+          planStatus.innerText = "Premium Ativo";
+          planStatus.style.color = "#28a745";
+
+          if (user.premiumAte) {
+            const dataExp = new Date(user.premiumAte);
+            planExp.innerText = dataExp.toLocaleDateString("pt-BR");
+            expContainer.style.display = "block";
+          }
+        } else {
+          // Tentar ativar novamente se não deu certo
+          planStatus.innerText = "Ativando...";
+          planStatus.style.color = "#f0ad4e";
+          loadingStatus.innerHTML = '<span style="color:#666">Finalizando ativação do plano...</span>';
+          loadingStatus.style.display = "flex";
+
+          // Tentar novamente em 3 segundos
+          setTimeout(() => location.reload(), 3000);
+        }
+      } catch (error) {
+        console.error("Erro ao ativar premium:", error);
+        loadingStatus.innerHTML = '<span style="color:#c00">Erro ao ativar premium. Tente novamente.</span>';
+      }
+    })();
+  </script>
+</body>
+</html>

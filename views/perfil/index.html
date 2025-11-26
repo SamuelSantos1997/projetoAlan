@@ -54,6 +54,7 @@
           <div class="field">
             <label for="email">Email</label>
             <input id="email" name="email" type="email" placeholder="voce@exemplo.com" required />
+            <span id="emailError" class="field-error"></span>
           </div>
 
           <div class="field">
@@ -64,6 +65,7 @@
           <div class="field">
             <label for="cpf">CPF</label>
             <input id="cpf" name="cpf" type="text" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" />
+            <span id="cpfError" class="field-error"></span>
           </div>
 
           <div class="field field-full">
@@ -76,22 +78,99 @@
             <input id="dataNascimento" name="dataNascimento" type="date" />
           </div>
 
-          <div class="field field-checkbox">
-            <label class="check">
-              <input id="isPremium" name="isPremium" type="checkbox" />
-              <span>Sou Premium</span>
-            </label>
-          </div>
-
-          <div class="field" id="premiumAteWrapper" hidden>
-            <label for="premiumAte">Premium até</label>
-            <input id="premiumAte" name="premiumAte" type="date" />
+          <div class="field field-premium">
+            <label>Status do Plano</label>
+            <div class="premium-status">
+              <span id="premiumBadge" class="premium-badge-inactive">Grátis</span>
+              <span id="premiumAteText" class="premium-ate"></span>
+              <a href="/views/premium/index.html" class="premium-link" id="premiumLink">Gerenciar plano</a>
+            </div>
           </div>
         </div>
 
         <div class="actions">
           <button class="btn btn-secondary" type="button" id="btnReset">Cancelar</button>
           <button class="btn" type="submit" id="btnSalvar">Salvar alterações</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Seção de Alterar Senha -->
+    <section class="card card-senha">
+      <h2 class="card-title">Alterar Senha</h2>
+      <p class="card-subtitle">Para alterar sua senha, preencha os campos abaixo</p>
+
+      <form id="senhaForm" class="form">
+        <div class="grid">
+          <div class="field field-full">
+            <label for="senhaAtual">Senha atual</label>
+            <div class="password-input-wrapper">
+              <input id="senhaAtual" name="senhaAtual" type="password" placeholder="Digite sua senha atual" required />
+              <button type="button" class="toggle-password" data-target="senhaAtual">
+                <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="novaSenha">Nova senha</label>
+            <div class="password-input-wrapper">
+              <input id="novaSenha" name="novaSenha" type="password" placeholder="Mínimo 8 caracteres" required />
+              <button type="button" class="toggle-password" data-target="novaSenha">
+                <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+            <span id="novaSenhaError" class="field-error"></span>
+          </div>
+
+          <div class="field">
+            <label for="confirmarSenha">Confirmar nova senha</label>
+            <div class="password-input-wrapper">
+              <input id="confirmarSenha" name="confirmarSenha" type="password" placeholder="Repita a nova senha" required />
+              <button type="button" class="toggle-password" data-target="confirmarSenha">
+                <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+            <span id="confirmarSenhaError" class="field-error"></span>
+          </div>
+
+          <div class="field field-full">
+            <div class="password-requirements">
+              <p class="requirements-title">A senha deve conter:</p>
+              <ul class="requirements-list">
+                <li id="req-length" class="requirement">Mínimo 8 caracteres</li>
+                <li id="req-upper" class="requirement">Uma letra maiúscula</li>
+                <li id="req-lower" class="requirement">Uma letra minúscula</li>
+                <li id="req-number" class="requirement">Um número</li>
+                <li id="req-special" class="requirement">Um caractere especial (!@#$%^&*)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="submit" id="btnAlterarSenha">Alterar senha</button>
         </div>
       </form>
     </section>

@@ -47,6 +47,7 @@
                 required
                 autocomplete="email"
               />
+              <span class="field-error"></span>
             </div>
 
             <div class="field">
@@ -70,6 +71,7 @@
                 maxlength="14"
                 autocomplete="off"
               />
+              <span class="field-error"></span>
             </div>
 
             <div class="field">
@@ -99,11 +101,19 @@
                 id="senha"
                 name="senha"
                 type="password"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Senha forte"
                 required
                 autocomplete="new-password"
-                minlength="6"
+                minlength="8"
               />
+              <span class="field-error"></span>
+              <ul id="passwordRequirements" class="password-requirements">
+                <li data-req="minLength">Mínimo 8 caracteres</li>
+                <li data-req="hasUppercase">Uma letra maiúscula</li>
+                <li data-req="hasLowercase">Uma letra minúscula</li>
+                <li data-req="hasNumber">Um número</li>
+                <li data-req="hasSpecial">Um caractere especial (!@#$%...)</li>
+              </ul>
             </div>
 
             <div class="field">
@@ -115,8 +125,9 @@
                 placeholder="Digite a senha novamente"
                 required
                 autocomplete="new-password"
-                minlength="6"
+                minlength="8"
               />
+              <span class="field-error"></span>
             </div>
           </div>
 

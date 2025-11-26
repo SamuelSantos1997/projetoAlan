@@ -238,12 +238,73 @@ body {
   .container {
     max-width: 100%;
   }
-  
+
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .field-full {
     grid-column: 1;
+  }
+}
+
+/* Erros inline nos campos */
+.field-error {
+  display: none;
+  color: var(--error);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.input-error {
+  border-color: var(--error) !important;
+}
+
+.input-error:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15) !important;
+}
+
+/* Requisitos de senha */
+.password-requirements {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+
+.password-requirements li {
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.password-requirements li::before {
+  content: "○";
+  font-size: 8px;
+}
+
+.password-requirements li.valid {
+  color: var(--success);
+}
+
+.password-requirements li.valid::before {
+  content: "●";
+}
+
+.password-requirements li.invalid {
+  color: var(--error);
+}
+
+.password-requirements li.invalid::before {
+  content: "○";
+}
+
+@media (max-width: 480px) {
+  .password-requirements {
+    grid-template-columns: 1fr;
   }
 }

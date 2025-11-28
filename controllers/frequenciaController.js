@@ -22,12 +22,10 @@ function createLabelFromDateValue(value) {
   } else if (typeof value === "string") {
     let normalized = value.trim();
 
-    // Se vier com espaço entre data e hora, troca por "T"
     if (normalized.includes(" ") && !normalized.includes("T")) {
       normalized = normalized.replace(" ", "T");
     }
 
-    // Se vier com milissegundos ou timezone, corta no 19º caractere
     if (normalized.length > 19) {
       normalized = normalized.substring(0, 19);
     }
@@ -45,6 +43,24 @@ function createLabelFromDateValue(value) {
   const month = String(d.getMonth() + 1).padStart(2, "0");
 
   return `${day}/${month}`;
+}
+
+// Parsear data de forma segura
+function parseDate(value) {
+  if (value instanceof Date) return value;
+
+  if (typeof value === "string") {
+    let normalized = value.trim();
+    if (normalized.includes(" ") && !normalized.includes("T")) {
+      normalized = normalized.replace(" ", "T");
+    }
+    if (normalized.length > 19) {
+      normalized = normalized.substring(0, 19);
+    }
+    return new Date(normalized);
+  }
+
+  return new Date(NaN);
 }
 
 // Mapear ID do treino para grupo muscular
@@ -72,18 +88,14 @@ function mapTreinoIdToGrupo(treinoId) {
 
 // Extrair grupo muscular do título do treino
 function extrairGrupoMuscular(treino) {
-  // Tentar extrair do ID do treino na descrição
-  const descricao = treino.descricao || "";
   const titulo = treino.titulo || "";
 
-  // Extrair ID do treino do título (ex: "Treino #5" -> 5)
   const idMatch = titulo.match(/Treino #(\d+)/i);
   if (idMatch) {
     const treinoId = parseInt(idMatch[1]);
     return mapTreinoIdToGrupo(treinoId);
   }
 
-  // Fallback: tentar detectar pelo nível
   if (treino.nivel === "INICIANTE") return "Treino Iniciante";
   if (treino.nivel === "INTERMEDIARIO") return "Treino Intermediário";
   if (treino.nivel === "AVANCADO") return "Treino Avançado";
@@ -132,7 +144,6 @@ async function buscarTreinosDoUsuario() {
     const json = await response.json();
     console.log("Treinos do backend:", json);
 
-    // O backend retorna { success: true, data: [...] }
     if (json.success && Array.isArray(json.data)) {
       return json.data;
     }
@@ -146,19 +157,11 @@ async function buscarTreinosDoUsuario() {
 
 // Transformar treinos do backend para o formato do gráfico
 function transformarTreinosParaGrafico(treinos) {
-  // Treinos vêm do backend como: { id, clienteId, titulo, descricao, nivel, createdAt }
-  // Precisamos extrair data e estimar duração/calorias
-
   return treinos.map(treino => {
-    // Extrair duração da descrição (ex: "Treino realizado em 2025-01-23 com duração de 45 minutos")
     const descricao = treino.descricao || "";
     const duracaoMatch = descricao.match(/duração de (\d+) minuto/i);
-    const duracao = duracaoMatch ? parseInt(duracaoMatch[1]) : 45; // default 45min
-
-    // Estimar calorias: ~8 kcal por minuto (média)
+    const duracao = duracaoMatch ? parseInt(duracaoMatch[1]) : 45;
     const calorias = Math.round(duracao * 8);
-
-    // Data: usar createdAt
     const data = treino.createdAt;
 
     return {
@@ -168,6 +171,178 @@ function transformarTreinosParaGrafico(treinos) {
       tipo: treino.nivel || "INICIANTE"
     };
   });
+}
+
+// Calcular sequência atual (streak) de dias consecutivos
+function calcularStreak(treinos) {
+  if (treinos.length === 0) return { atual: 0, recorde: 0 };
+
+  // Ordenar treinos por data decrescente
+  const datasUnicas = [...new Set(treinos.map(t => {
+    const d = parseDate(t.createdAt);
+    return d.toISOString().split('T')[0];
+  }))].sort().reverse();
+
+  if (datasUnicas.length === 0) return { atual: 0, recorde: 0 };
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  let streakAtual = 0;
+  let streakRecorde = 0;
+  let streakTemp = 1;
+
+  // Verificar se treinou hoje ou ontem para começar o streak
+  const ultimaData = new Date(datasUnicas[0]);
+  const diffUltima = Math.floor((hoje - ultimaData) / (1000 * 60 * 60 * 24));
+
+  if (diffUltima <= 1) {
+    streakAtual = 1;
+
+    for (let i = 1; i < datasUnicas.length; i++) {
+      const dataAtual = new Date(datasUnicas[i - 1]);
+      const dataAnterior = new Date(datasUnicas[i]);
+      const diff = Math.floor((dataAtual - dataAnterior) / (1000 * 60 * 60 * 24));
+
+      if (diff === 1) {
+        streakAtual++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  // Calcular recorde
+  for (let i = 1; i < datasUnicas.length; i++) {
+    const dataAtual = new Date(datasUnicas[i - 1]);
+    const dataAnterior = new Date(datasUnicas[i]);
+    const diff = Math.floor((dataAtual - dataAnterior) / (1000 * 60 * 60 * 24));
+
+    if (diff === 1) {
+      streakTemp++;
+    } else {
+      streakRecorde = Math.max(streakRecorde, streakTemp);
+      streakTemp = 1;
+    }
+  }
+  streakRecorde = Math.max(streakRecorde, streakTemp, streakAtual);
+
+  return { atual: streakAtual, recorde: streakRecorde };
+}
+
+// Calcular meta semanal
+function calcularMetaSemanal(treinos, meta = 4) {
+  const hoje = new Date();
+  const inicioSemana = new Date(hoje);
+  inicioSemana.setDate(hoje.getDate() - hoje.getDay()); // Domingo
+  inicioSemana.setHours(0, 0, 0, 0);
+
+  const treinosSemana = treinos.filter(t => {
+    const d = parseDate(t.createdAt);
+    return d >= inicioSemana && d <= hoje;
+  });
+
+  // Dias da semana com treino
+  const diasComTreino = new Set(treinosSemana.map(t => {
+    const d = parseDate(t.createdAt);
+    return d.getDay();
+  }));
+
+  return {
+    realizados: diasComTreino.size,
+    meta: meta,
+    diasComTreino: diasComTreino
+  };
+}
+
+// Gerar dados para o calendário heatmap (últimos 3 meses)
+function gerarDadosCalendario(treinos) {
+  const hoje = new Date();
+  const tresMesesAtras = new Date(hoje);
+  tresMesesAtras.setMonth(tresMesesAtras.getMonth() - 3);
+
+  // Contar treinos por dia
+  const treinosPorDia = {};
+  treinos.forEach(t => {
+    const d = parseDate(t.createdAt);
+    const key = d.toISOString().split('T')[0];
+    treinosPorDia[key] = (treinosPorDia[key] || 0) + 1;
+  });
+
+  const dias = [];
+  const dataIterador = new Date(tresMesesAtras);
+
+  while (dataIterador <= hoje) {
+    const key = dataIterador.toISOString().split('T')[0];
+    const count = treinosPorDia[key] || 0;
+
+    // Determinar nível (0-4)
+    let nivel = 0;
+    if (count === 1) nivel = 1;
+    else if (count === 2) nivel = 2;
+    else if (count === 3) nivel = 3;
+    else if (count >= 4) nivel = 4;
+
+    dias.push({
+      data: key,
+      count: count,
+      nivel: nivel
+    });
+
+    dataIterador.setDate(dataIterador.getDate() + 1);
+  }
+
+  return dias;
+}
+
+// Definições de conquistas
+const CONQUISTAS = [
+  { id: 'primeiro-treino', nome: 'Primeiro Passo', desc: 'Complete seu primeiro treino', icone: '🎯', verificar: (stats) => stats.totalTreinos >= 1 },
+  { id: 'semana-completa', nome: 'Semana Perfeita', desc: '4 treinos em uma semana', icone: '📅', verificar: (stats) => stats.metaSemanal.realizados >= 4 },
+  { id: 'streak-3', nome: 'Esquentando', desc: '3 dias seguidos', icone: '🔥', verificar: (stats) => stats.streak.atual >= 3 || stats.streak.recorde >= 3 },
+  { id: 'streak-7', nome: 'Em Chamas', desc: '7 dias seguidos', icone: '💥', verificar: (stats) => stats.streak.atual >= 7 || stats.streak.recorde >= 7 },
+  { id: 'streak-30', nome: 'Imparável', desc: '30 dias seguidos', icone: '🏆', verificar: (stats) => stats.streak.atual >= 30 || stats.streak.recorde >= 30 },
+  { id: 'dez-treinos', nome: 'Consistente', desc: 'Complete 10 treinos', icone: '💪', verificar: (stats) => stats.totalTreinos >= 10 },
+  { id: 'vinte-cinco-treinos', nome: 'Dedicado', desc: 'Complete 25 treinos', icone: '🥈', verificar: (stats) => stats.totalTreinos >= 25 },
+  { id: 'cinquenta-treinos', nome: 'Atleta', desc: 'Complete 50 treinos', icone: '🥇', verificar: (stats) => stats.totalTreinos >= 50 },
+  { id: 'cem-treinos', nome: 'Lendário', desc: 'Complete 100 treinos', icone: '👑', verificar: (stats) => stats.totalTreinos >= 100 },
+  { id: 'madrugador', nome: 'Madrugador', desc: 'Treino antes das 7h', icone: '🌅', verificar: (stats) => stats.treinoMatinal },
+  { id: 'noturno', nome: 'Coruja', desc: 'Treino após as 21h', icone: '🌙', verificar: (stats) => stats.treinoNoturno },
+  { id: 'mil-kcal', nome: 'Queimador', desc: 'Gaste 1000 kcal em um dia', icone: '🔥', verificar: (stats) => stats.maxKcalDia >= 1000 }
+];
+
+// Verificar conquistas do usuário
+function verificarConquistas(treinos, treinoHistorico) {
+  const stats = {
+    totalTreinos: treinos.length,
+    streak: calcularStreak(treinos),
+    metaSemanal: calcularMetaSemanal(treinos),
+    treinoMatinal: false,
+    treinoNoturno: false,
+    maxKcalDia: 0
+  };
+
+  // Verificar horários dos treinos
+  treinos.forEach(t => {
+    const d = parseDate(t.createdAt);
+    const hora = d.getHours();
+    if (hora < 7) stats.treinoMatinal = true;
+    if (hora >= 21) stats.treinoNoturno = true;
+  });
+
+  // Calcular máximo de kcal em um dia
+  const kcalPorDia = {};
+  treinoHistorico.forEach(t => {
+    const d = parseDate(t.d);
+    const key = d.toISOString().split('T')[0];
+    kcalPorDia[key] = (kcalPorDia[key] || 0) + t.kcal;
+  });
+  stats.maxKcalDia = Math.max(0, ...Object.values(kcalPorDia));
+
+  return CONQUISTAS.map(c => ({
+    ...c,
+    desbloqueada: c.verificar(stats)
+  }));
 }
 
 // KPIs
@@ -182,19 +357,157 @@ export function calcKPIs(hist) {
   return { totalTreinos, mediaDur, mediaKcal };
 }
 
+// Renderizar calendário heatmap
+function renderizarCalendario(dadosCalendario) {
+  const container = document.getElementById('freq-calendar');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  dadosCalendario.forEach(dia => {
+    const div = document.createElement('div');
+    div.className = `calendar-day level-${dia.nivel}`;
+    div.title = `${dia.data}: ${dia.count} treino(s)`;
+    container.appendChild(div);
+  });
+}
+
+// Renderizar dias da semana
+function renderizarDiasSemana(metaSemanal) {
+  const container = document.getElementById('weekly-days');
+  if (!container) return;
+
+  const diasNomes = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const hoje = new Date().getDay();
+
+  container.innerHTML = '';
+
+  diasNomes.forEach((nome, index) => {
+    const div = document.createElement('div');
+    div.className = 'weekly-day';
+
+    const completado = metaSemanal.diasComTreino.has(index);
+    const ehHoje = index === hoje;
+
+    div.innerHTML = `
+      <span class="weekly-day-name">${nome}</span>
+      <div class="weekly-day-indicator ${completado ? 'completed' : ''} ${ehHoje ? 'today' : ''}">
+        ${completado ? '✓' : ''}
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+// Renderizar conquistas
+function renderizarConquistas(conquistas) {
+  const container = document.getElementById('achievements-grid');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  conquistas.forEach(c => {
+    const div = document.createElement('div');
+    div.className = `achievement-card ${c.desbloqueada ? 'unlocked' : 'locked'}`;
+    div.innerHTML = `
+      <span class="achievement-icon">${c.icone}</span>
+      <span class="achievement-name">${c.nome}</span>
+      <span class="achievement-desc">${c.desc}</span>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// Renderizar histórico recente
+function renderizarHistorico(treinos, treinoHistorico) {
+  const container = document.getElementById('history-list');
+  if (!container) return;
+
+  // Pegar os 5 mais recentes
+  const recentes = treinos.slice(0, 5);
+
+  if (recentes.length === 0) {
+    container.innerHTML = '<p style="color: var(--muted); text-align: center;">Nenhum treino registrado ainda.</p>';
+    return;
+  }
+
+  const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+  container.innerHTML = '';
+
+  recentes.forEach((treino, index) => {
+    const d = parseDate(treino.createdAt);
+    const hist = treinoHistorico[index] || { dur: 45, kcal: 360 };
+
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `
+      <div class="history-date">
+        <span class="history-day">${d.getDate()}</span>
+        <span class="history-month">${meses[d.getMonth()]}</span>
+      </div>
+      <div class="history-info">
+        <div class="history-title">${treino.titulo || 'Treino'}</div>
+        <div class="history-details">${treino.nivel || 'Personalizado'}</div>
+      </div>
+      <div class="history-stats">
+        <div class="history-stat">
+          <div class="history-stat-value">${hist.dur}min</div>
+          <div class="history-stat-label">Duração</div>
+        </div>
+        <div class="history-stat">
+          <div class="history-stat-value">${hist.kcal}</div>
+          <div class="history-stat-label">kcal</div>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
 // Renderizar gráficos com dados reais
 export async function renderCharts() {
-  // Buscar dados reais do backend
   const treinosBackend = await buscarTreinosDoUsuario();
   const treinoHistorico = transformarTreinosParaGrafico(treinosBackend);
 
   console.log("Histórico transformado:", treinoHistorico);
 
+  // Calcular estatísticas
+  const streak = calcularStreak(treinosBackend);
+  const metaSemanal = calcularMetaSemanal(treinosBackend);
+  const dadosCalendario = gerarDadosCalendario(treinosBackend);
+  const conquistas = verificarConquistas(treinosBackend, treinoHistorico);
+  const { totalTreinos, mediaDur, mediaKcal } = calcKPIs(treinoHistorico);
+
+  console.log("=== DEBUG CONQUISTAS ===");
+  console.log("Total treinos backend:", treinosBackend.length);
+  console.log("Streak:", streak);
+  console.log("Meta semanal:", metaSemanal);
+  console.log("Conquistas:", conquistas.map(c => ({ nome: c.nome, desbloqueada: c.desbloqueada })));
+
+  // Atualizar KPIs
+  document.getElementById("kpi-treinos").innerText = totalTreinos;
+  document.getElementById("kpi-duracao").innerHTML = `${mediaDur}<small>min</small>`;
+  document.getElementById("kpi-kcal").innerHTML = `${mediaKcal}<small>kcal</small>`;
+  document.getElementById("kpi-recorde").innerText = streak.recorde;
+
+  // Atualizar streak
+  document.getElementById("streak-value").innerText = streak.atual;
+
+  // Atualizar meta semanal
+  const progressoPct = Math.min(100, (metaSemanal.realizados / metaSemanal.meta) * 100);
+  document.getElementById("weekly-goal-text").innerText = `${metaSemanal.realizados} de ${metaSemanal.meta} treinos`;
+  document.getElementById("weekly-goal-bar").style.width = `${progressoPct}%`;
+
+  // Renderizar componentes
+  renderizarDiasSemana(metaSemanal);
+  renderizarCalendario(dadosCalendario);
+  renderizarConquistas(conquistas);
+  renderizarHistorico(treinosBackend, treinoHistorico);
+
   if (treinoHistorico.length === 0) {
-    console.warn("Nenhum treino encontrado. Mostrando mensagem vazia.");
-    document.getElementById("kpi-treinos").innerText = "0";
-    document.getElementById("kpi-duracao").innerText = "0 min";
-    document.getElementById("kpi-kcal").innerText = "0 kcal";
+    console.warn("Nenhum treino encontrado.");
     return;
   }
 
@@ -203,9 +516,7 @@ export async function renderCharts() {
   const ctx3 = document.getElementById("chart-kcal");
   const ctx4 = document.getElementById("chart-grupos");
 
-  // Labels dd/MM
   const labels = treinoHistorico.map(x => createLabelFromDateValue(x.d));
-
   const frequenciaPorDia = treinoHistorico.map(() => 1);
   const duracoes = treinoHistorico.map(x => x.dur);
   const calorias = treinoHistorico.map(x => x.kcal);
@@ -234,15 +545,14 @@ export async function renderCharts() {
     type: "line",
     data: {
       labels,
-      datasets: [
-        {
-          label: "Minutos por treino",
-          data: duracoes,
-          tension: 0.3,
-          borderColor: "rgba(59, 130, 246, 1)",
-          backgroundColor: "rgba(59, 130, 246, 0.1)"
-        }
-      ]
+      datasets: [{
+        label: "Minutos por treino",
+        data: duracoes,
+        tension: 0.3,
+        borderColor: "rgba(59, 130, 246, 1)",
+        backgroundColor: "rgba(59, 130, 246, 0.1)",
+        fill: true
+      }]
     },
     options: {
       plugins: { legend: { display: false } }
@@ -254,15 +564,14 @@ export async function renderCharts() {
     type: "line",
     data: {
       labels,
-      datasets: [
-        {
-          label: "Gasto calórico (kcal)",
-          data: calorias,
-          tension: 0.3,
-          borderColor: "rgba(239, 68, 68, 1)",
-          backgroundColor: "rgba(239, 68, 68, 0.1)"
-        }
-      ]
+      datasets: [{
+        label: "Gasto calórico (kcal)",
+        data: calorias,
+        tension: 0.3,
+        borderColor: "rgba(239, 68, 68, 1)",
+        backgroundColor: "rgba(239, 68, 68, 0.1)",
+        fill: true
+      }]
     },
     options: {
       plugins: { legend: { display: false } }
@@ -274,17 +583,16 @@ export async function renderCharts() {
   const gruposLabels = Object.keys(gruposMuscularesData);
   const gruposValues = Object.values(gruposMuscularesData);
 
-  // Cores vibrantes para cada grupo
   const backgroundColors = [
-    "rgba(34, 197, 94, 0.8)",   // Verde
-    "rgba(59, 130, 246, 0.8)",  // Azul
-    "rgba(239, 68, 68, 0.8)",   // Vermelho
-    "rgba(249, 115, 22, 0.8)",  // Laranja
-    "rgba(168, 85, 247, 0.8)",  // Roxo
-    "rgba(236, 72, 153, 0.8)",  // Rosa
-    "rgba(14, 165, 233, 0.8)",  // Ciano
-    "rgba(234, 179, 8, 0.8)",   // Amarelo
-    "rgba(161, 161, 170, 0.8)", // Cinza
+    "rgba(34, 197, 94, 0.8)",
+    "rgba(59, 130, 246, 0.8)",
+    "rgba(239, 68, 68, 0.8)",
+    "rgba(249, 115, 22, 0.8)",
+    "rgba(168, 85, 247, 0.8)",
+    "rgba(236, 72, 153, 0.8)",
+    "rgba(14, 165, 233, 0.8)",
+    "rgba(234, 179, 8, 0.8)",
+    "rgba(161, 161, 170, 0.8)",
   ];
 
   const borderColors = backgroundColors.map(color => color.replace("0.8", "1"));
@@ -309,9 +617,7 @@ export async function renderCharts() {
           position: "bottom",
           labels: {
             color: "#e5e7eb",
-            font: {
-              size: 12
-            },
+            font: { size: 12 },
             padding: 10
           }
         },
@@ -329,15 +635,13 @@ export async function renderCharts() {
       }
     }
   });
-
-  // Atualizar KPIs
-  const { totalTreinos, mediaDur, mediaKcal } = calcKPIs(treinoHistorico);
-  document.getElementById("kpi-treinos").innerText = totalTreinos;
-  document.getElementById("kpi-duracao").innerText = mediaDur + " min";
-  document.getElementById("kpi-kcal").innerText = mediaKcal + " kcal";
 }
 
 export function mountKPIs() {
   // KPIs serão montados dentro de renderCharts após buscar dados
-  // Deixar essa função vazia por compatibilidade
+}
+
+// Função principal de inicialização
+export function initFrequenciaDashboard() {
+  renderCharts();
 }

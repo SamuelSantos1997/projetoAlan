@@ -109,7 +109,7 @@ const BFF_BASE_URL = "http://localhost:8000/api";
       console.error("Erro ao iniciar checkout:", error);
       mostrarErro(error.message || "Erro ao processar pagamento. Verifique se seu CPF e telefone estão cadastrados no perfil.");
       btnAssinar.disabled = false;
-      btnAssinar.innerText = "Assinar Premium — R$ 1,00";
+      btnAssinar.innerText = "Assinar Premium — R$ 39,90";
     }
   }
 

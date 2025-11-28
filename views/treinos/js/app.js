@@ -1027,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <li>✅ Acompanhamento personalizado</li>
                     <li>✅ Suporte prioritário</li>
                 </ul>
-                <p class="premium-price">Por apenas <strong>R$ 1,00/mês</strong></p>
+                <p class="premium-price">Por apenas <strong>R$ 39,90/mês</strong></p>
             </div>
         `;
 
@@ -1349,7 +1349,6 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function finalizarTreino() {
         if (!currentWorkoutInProgress || !workoutStartTime) {
-            alert("Nenhum treino em andamento.");
             return;
         }
 
@@ -1383,7 +1382,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const token = localStorage.getItem('userToken');
         if (!token) {
-            alert("Token de autenticação não encontrado. Faça login novamente.");
             window.location.href = "/views/login/index.html";
             return;
         }
@@ -1406,10 +1404,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(json.message || "Falha ao registrar frequência");
             }
 
-            alert("Treino finalizado e frequência registrada com sucesso!");
         } catch (err) {
             console.error("Erro ao finalizar treino:", err);
-            alert("Erro ao registrar frequência: " + err.message);
         } finally {
             if (currentTimerInterval) {
                 clearInterval(currentTimerInterval);
@@ -1435,7 +1431,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!userId) return;
 
         if (!currentLevelId || !currentWorkoutType) {
-            alert("Selecione um treino primeiro.");
             return;
         }
 

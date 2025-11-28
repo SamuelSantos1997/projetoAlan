@@ -1,50 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FitPanel — Frequência</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/views/home/frequencia.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div id="navbar"></div>
+  <script src="/assets/js/injectNavbar.js"></script>
 
-<!doctype html><html lang="pt-BR"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>FitPanel — Frequência</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/base.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-</head><body>
-<div id="navbar"></div>
-<script src="/assets/js/injectNavbar.js"></script>
+  <div class="freq-container">
+    <!-- Header com saudação -->
+    <header class="freq-header">
+      <div class="freq-header-text">
+        <h1>Sua Frequência</h1>
+        <p class="freq-subtitle">Acompanhe seu progresso e mantenha a consistência</p>
+      </div>
+      <div class="freq-streak-badge" id="streak-badge">
+        <span class="streak-icon">🔥</span>
+        <div class="streak-info">
+          <span class="streak-value" id="streak-value">0</span>
+          <span class="streak-label">dias seguidos</span>
+        </div>
+      </div>
+    </header>
 
-<div class="container">
-  <div class="grid grid-3">
-    <div class="card kpi"><h3>Treinos no período</h3><div class="value" id="kpi-treinos">0</div></div>
-    <div class="card kpi"><h3>Média de tempo</h3><div class="value" id="kpi-duracao">0 min</div></div>
-    <div class="card kpi"><h3>Média de calorias</h3><div class="value" id="kpi-kcal">0 kcal</div></div>
+    <!-- KPIs principais -->
+    <section class="freq-kpis">
+      <div class="kpi-card">
+        <div class="kpi-icon">📊</div>
+        <div class="kpi-content">
+          <span class="kpi-value" id="kpi-treinos">0</span>
+          <span class="kpi-label">Treinos este mês</span>
+        </div>
+        <div class="kpi-trend" id="kpi-treinos-trend"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">⏱️</div>
+        <div class="kpi-content">
+          <span class="kpi-value" id="kpi-duracao">0<small>min</small></span>
+          <span class="kpi-label">Tempo médio</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🔥</div>
+        <div class="kpi-content">
+          <span class="kpi-value" id="kpi-kcal">0<small>kcal</small></span>
+          <span class="kpi-label">Média por treino</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🏆</div>
+        <div class="kpi-content">
+          <span class="kpi-value" id="kpi-recorde">0</span>
+          <span class="kpi-label">Recorde de sequência</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Meta semanal -->
+    <section class="freq-weekly-goal">
+      <div class="weekly-goal-header">
+        <h2>Meta Semanal</h2>
+        <span class="weekly-goal-text" id="weekly-goal-text">0 de 4 treinos</span>
+      </div>
+      <div class="weekly-goal-progress">
+        <div class="weekly-goal-bar" id="weekly-goal-bar" style="width: 0%"></div>
+      </div>
+      <div class="weekly-days" id="weekly-days">
+        <!-- Dias da semana serão inseridos via JS -->
+      </div>
+    </section>
+
+    <!-- Calendário Heatmap -->
+    <section class="freq-calendar-section">
+      <h2>Calendário de Atividades</h2>
+      <p class="section-subtitle">Últimos 3 meses</p>
+      <div class="freq-calendar" id="freq-calendar">
+        <!-- Calendário será gerado via JS -->
+      </div>
+      <div class="calendar-legend">
+        <span class="legend-label">Menos</span>
+        <div class="legend-item level-0"></div>
+        <div class="legend-item level-1"></div>
+        <div class="legend-item level-2"></div>
+        <div class="legend-item level-3"></div>
+        <div class="legend-item level-4"></div>
+        <span class="legend-label">Mais</span>
+      </div>
+    </section>
+
+    <!-- Conquistas -->
+    <section class="freq-achievements">
+      <h2>Conquistas</h2>
+      <div class="achievements-grid" id="achievements-grid">
+        <!-- Conquistas serão inseridas via JS -->
+      </div>
+    </section>
+
+    <!-- Gráficos -->
+    <section class="freq-charts">
+      <div class="chart-card">
+        <h3>Frequência Semanal</h3>
+        <canvas id="chart-frequencia" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Duração dos Treinos</h3>
+        <canvas id="chart-duracao" height="200"></canvas>
+      </div>
+    </section>
+
+    <section class="freq-charts">
+      <div class="chart-card">
+        <h3>Gasto Calórico</h3>
+        <canvas id="chart-kcal" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Grupos Musculares</h3>
+        <canvas id="chart-grupos" height="200"></canvas>
+      </div>
+    </section>
+
+    <!-- Histórico recente -->
+    <section class="freq-history">
+      <h2>Treinos Recentes</h2>
+      <div class="history-list" id="history-list">
+        <!-- Histórico será inserido via JS -->
+      </div>
+    </section>
   </div>
 
-  <div class="grid" style="margin-top:16px">
-    <div class="card" style="padding:16px">
-      <h2 style="margin-bottom:8px">Frequência</h2>
-      <canvas id="chart-frequencia" height="110"></canvas>
-    </div>
-    <div class="card" style="padding:16px">
-      <h2 style="margin-bottom:8px">Duração dos treinos</h2>
-      <canvas id="chart-duracao" height="110"></canvas>
-    </div>
-    <div class="card" style="padding:16px">
-      <h2 style="margin-bottom:8px">Gasto calórico</h2>
-      <canvas id="chart-kcal" height="110"></canvas>
-    </div>
-  </div>
+  <footer>FitPanel © 2025 - Mantenha o foco!</footer>
 
-  <div class="grid" style="margin-top:16px">
-    <div class="card" style="padding:26px; max-width: 900px; margin: 26px auto 0;">
-      <h2 style="margin-bottom:8px; text-align: center;">Grupos Musculares Treinados</h2>
-      <canvas id="chart-grupos" height="80"></canvas>
-    </div>
-  </div>
-</div>
-<footer>Use as abas para navegar entre as seções</footer>
-
-<script type="module">
-  import { renderCharts, mountKPIs } from "/controllers/frequenciaController.js";
-  // Não precisa mais importar data.js - dados vêm do backend
-  mountKPIs();
-  renderCharts();
-</script>
-</body></html>
+  <script type="module">
+    import { initFrequenciaDashboard } from "/controllers/frequenciaController.js";
+    initFrequenciaDashboard();
+  </script>
+</body>
+</html>

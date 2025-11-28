@@ -1,0 +1,528 @@
+/* Frequência Dashboard Styles */
+
+.freq-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Header */
+.freq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.freq-header-text h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.freq-subtitle {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+/* Streak Badge */
+.freq-streak-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.1));
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  border-radius: 16px;
+  padding: 12px 20px;
+}
+
+.streak-icon {
+  font-size: 2rem;
+}
+
+.streak-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.streak-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #f97316;
+}
+
+.streak-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* KPIs */
+.freq-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.kpi-card {
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.kpi-icon {
+  font-size: 2rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 12px;
+}
+
+.kpi-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.kpi-value small {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 2px;
+}
+
+.kpi-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.kpi-trend {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.kpi-trend.positive {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--primary);
+}
+
+.kpi-trend.negative {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+}
+
+/* Weekly Goal */
+.freq-weekly-goal {
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.weekly-goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.weekly-goal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.weekly-goal-text {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.weekly-goal-progress {
+  height: 12px;
+  background: var(--bg);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.weekly-goal-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-600));
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.weekly-days {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.weekly-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.weekly-day-name {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.weekly-day-indicator {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  font-size: 0.875rem;
+  transition: all 0.3s;
+}
+
+.weekly-day-indicator.completed {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #0b1220;
+}
+
+.weekly-day-indicator.today {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+/* Calendar Heatmap */
+.freq-calendar-section {
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.freq-calendar-section h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.section-subtitle {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin-bottom: 20px;
+}
+
+.freq-calendar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-bottom: 16px;
+}
+
+.calendar-day {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--bg);
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.calendar-day:hover {
+  transform: scale(1.3);
+}
+
+.calendar-day.level-0 { background: var(--bg); }
+.calendar-day.level-1 { background: rgba(34, 197, 94, 0.25); }
+.calendar-day.level-2 { background: rgba(34, 197, 94, 0.5); }
+.calendar-day.level-3 { background: rgba(34, 197, 94, 0.75); }
+.calendar-day.level-4 { background: var(--primary); }
+
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.legend-item {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.legend-item.level-0 { background: var(--bg); }
+.legend-item.level-1 { background: rgba(34, 197, 94, 0.25); }
+.legend-item.level-2 { background: rgba(34, 197, 94, 0.5); }
+.legend-item.level-3 { background: rgba(34, 197, 94, 0.75); }
+.legend-item.level-4 { background: var(--primary); }
+
+.legend-label {
+  margin: 0 4px;
+}
+
+/* Achievements */
+.freq-achievements {
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.freq-achievements h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.achievement-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.achievement-card:hover {
+  transform: translateY(-2px);
+}
+
+.achievement-card.locked {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.achievement-card.unlocked {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+}
+
+.achievement-icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.achievement-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.achievement-desc {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* Charts */
+.freq-charts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.chart-card {
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.chart-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+/* History */
+.freq-history {
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.freq-history h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  transition: background 0.2s;
+}
+
+.history-item:hover {
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.history-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 50px;
+}
+
+.history-day {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.history-month {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.history-details {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.history-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.history-stat {
+  text-align: center;
+}
+
+.history-stat-value {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.history-stat-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .freq-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .freq-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .freq-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .freq-charts {
+    grid-template-columns: 1fr;
+  }
+
+  .weekly-days {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .weekly-day {
+    flex: 0 0 auto;
+    width: 50px;
+  }
+
+  .history-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .history-stats {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .freq-container {
+    padding: 16px;
+  }
+
+  .kpi-card {
+    padding: 16px;
+  }
+
+  .kpi-value {
+    font-size: 1.5rem;
+  }
+
+  .achievements-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

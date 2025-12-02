@@ -402,3 +402,207 @@ main .card{
 .card-senha .password-input-wrapper input.input-valid {
   border-color: #22c55e !important;
 }
+
+/* -------- Seção Zona de Perigo -------- */
+.card-danger {
+  margin-top: 24px;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.danger-title {
+  color: #ef4444;
+}
+
+.danger-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.danger-info {
+  flex: 1;
+  min-width: 280px;
+}
+
+.danger-info h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.danger-info p {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.danger-info ul {
+  margin: 0 0 16px 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.danger-info ul li {
+  margin-bottom: 6px;
+}
+
+.danger-warning {
+  color: #ef4444 !important;
+  font-weight: 600;
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #dc2626, #b91c1c);
+  border: 1px solid #991b1b;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:active {
+  transform: translateY(0);
+}
+
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-danger svg {
+  flex-shrink: 0;
+}
+
+/* -------- Modal de Confirmação -------- */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-title {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.modal-text {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.modal .field {
+  margin-bottom: 20px;
+}
+
+.modal .password-input-wrapper input {
+  width: 100%;
+  background: #0d1117;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 12px 48px 12px 14px;
+  outline: none;
+  transition: border .2s, box-shadow .2s;
+}
+
+.modal .password-input-wrapper input:focus {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 4px rgba(147,197,253,.15);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+@media (max-width: 760px) {
+  .danger-content {
+    flex-direction: column;
+  }
+
+  .btn-danger {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-content {
+    padding: 20px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

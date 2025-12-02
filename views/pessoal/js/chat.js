@@ -1,5 +1,5 @@
 // Chat Premium - WebSocket/STOMP
-// URLs vem do config.js (importado no HTML)
+// Usa conexao global do presenca.js
 
 // Estado global
 let stompClient = null;
@@ -10,6 +10,7 @@ let conversations = [];
 let usersOnline = new Set();
 let typingTimeout = null;
 let originalTitle = document.title;
+let chatSubscriptions = [];
 
 // Elementos DOM
 const premiumRequired = document.getElementById("premium-required");
@@ -31,7 +32,7 @@ const typingIndicator = document.getElementById("typing-indicator");
 const typingUser = document.getElementById("typing-user");
 const notificationSound = document.getElementById("notification-sound");
 
-// Inicialização
+// Inicializacao
 async function init() {
   const token = localStorage.getItem("userToken");
 
@@ -40,7 +41,7 @@ async function init() {
     return;
   }
 
-  // Verificar se usuário é Premium
+  // Verificar se usuario e Premium
   try {
     const response = await fetch(`${BFF_BASE_URL}/bff/auth/me`, {
       headers: { "Authorization": `Bearer ${token}` }
@@ -60,15 +61,15 @@ async function init() {
       return;
     }
 
-    // Usuário é Premium - mostrar chat
+    // Usuario e Premium - mostrar chat
     premiumRequired.style.display = "none";
     chatContainer.style.display = "grid";
 
     // Carregar conversas
     await loadConversations();
 
-    // Conectar WebSocket
-    connectWebSocket(token);
+    // Conectar ou usar conexao existente do WebSocket
+    setupWebSocketConnection();
 
     // Setup eventos
     setupEventListeners();
@@ -79,49 +80,67 @@ async function init() {
   }
 }
 
-// Conectar WebSocket/STOMP
-function connectWebSocket(token) {
-  const socket = new SockJS(`${WS_URL}?token=${token}`);
+// Usar conexao global ou aguardar ela ficar pronta
+function setupWebSocketConnection() {
+  // Verificar se a conexao global ja existe e esta conectada
+  if (window.presencaGlobal && window.presencaGlobal.isConnected()) {
+    stompClient = window.presencaGlobal.getClient();
+    setupChatSubscriptions();
+    console.log("[Chat] Usando conexao global existente");
+  } else {
+    // Aguardar o evento de conexao do presenca.js
+    window.addEventListener('presenca:online', () => {
+      if (window.presencaGlobal) {
+        stompClient = window.presencaGlobal.getClient();
+        setupChatSubscriptions();
+        console.log("[Chat] Conexao global disponivel");
+      }
+    }, { once: true });
 
-  stompClient = new StompJs.Client({
-    webSocketFactory: () => socket,
-    reconnectDelay: 5000,
-    heartbeatIncoming: 4000,
-    heartbeatOutgoing: 4000,
-    debug: (str) => console.log("[STOMP]", str)
+    // Fallback: tentar a cada 500ms por 5 segundos
+    let attempts = 0;
+    const checkConnection = setInterval(() => {
+      attempts++;
+      if (window.presencaGlobal && window.presencaGlobal.isConnected()) {
+        clearInterval(checkConnection);
+        stompClient = window.presencaGlobal.getClient();
+        setupChatSubscriptions();
+        console.log("[Chat] Conexao global detectada");
+      } else if (attempts >= 10) {
+        clearInterval(checkConnection);
+        console.warn("[Chat] Timeout aguardando conexao global");
+      }
+    }, 500);
+  }
+
+  // Escutar eventos de presenca do sistema global
+  window.addEventListener('presenca:update', (e) => {
+    handlePresenceEvent(e.detail);
   });
+}
 
-  stompClient.onConnect = () => {
-    console.log("WebSocket conectado!");
+// Configurar subscricoes especificas do chat
+function setupChatSubscriptions() {
+  if (!stompClient || !stompClient.connected) {
+    console.warn("[Chat] StompClient nao conectado");
+    return;
+  }
 
-    // Subscrever a mensagens privadas
-    stompClient.subscribe("/user/queue/mensagens", (message) => {
-      const msg = JSON.parse(message.body);
-      handleNewMessage(msg);
-    });
+  // Subscrever a mensagens privadas
+  const msgSub = stompClient.subscribe("/user/queue/mensagens", (message) => {
+    const msg = JSON.parse(message.body);
+    handleNewMessage(msg);
+  });
+  chatSubscriptions.push(msgSub);
 
-    // Subscrever a indicador de digitando
-    stompClient.subscribe("/user/queue/digitando", (message) => {
-      const data = JSON.parse(message.body);
-      handleTypingIndicator(data);
-    });
+  // Subscrever a indicador de digitando
+  const typingSub = stompClient.subscribe("/user/queue/digitando", (message) => {
+    const data = JSON.parse(message.body);
+    handleTypingIndicator(data);
+  });
+  chatSubscriptions.push(typingSub);
 
-    // Subscrever a eventos de presença
-    stompClient.subscribe("/topic/presenca", (message) => {
-      const event = JSON.parse(message.body);
-      handlePresenceEvent(event);
-    });
-  };
-
-  stompClient.onStompError = (frame) => {
-    console.error("Erro STOMP:", frame.headers["message"], frame.body);
-  };
-
-  stompClient.onDisconnect = () => {
-    console.log("WebSocket desconectado");
-  };
-
-  stompClient.activate();
+  console.log("[Chat] Subscricoes configuradas");
 }
 
 // Carregar conversas do BFF
@@ -188,6 +207,10 @@ async function openConversation(conversaId, userId, userName) {
   currentConversaId = conversaId;
   currentDestinatarioId = userId;
 
+  // Resetar estado de digitando ao trocar de conversa
+  savedUserStatus = null;
+  typingIndicator.style.display = "none";
+
   // Atualizar UI
   document.querySelectorAll('.conversation-item').forEach(item => {
     item.classList.toggle('active', parseInt(item.dataset.id) === conversaId);
@@ -231,7 +254,7 @@ async function loadMessages(conversaId) {
     if (response.ok) {
       const result = await response.json();
       const messages = result.data || [];
-      renderMessages(messages.reverse()); // Inverter para ordem cronológica
+      renderMessages(messages.reverse()); // Inverter para ordem cronologica
     }
   } catch (error) {
     console.error("Erro ao carregar mensagens:", error);
@@ -268,6 +291,22 @@ function sendMessage() {
   const content = messageInput.value.trim();
   if (!content || !currentDestinatarioId || !stompClient?.connected) return;
 
+  // Adicionar mensagem na tela imediatamente (otimistic update)
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "message sent";
+  messageDiv.innerHTML = `
+    <div class="message-content">${escapeHtml(content)}</div>
+    <div class="message-time">${formatTime(new Date().toISOString())}</div>
+  `;
+
+  // Remover empty-chat se existir
+  const emptyChat = messagesContainer.querySelector('.empty-chat');
+  if (emptyChat) emptyChat.remove();
+
+  messagesContainer.appendChild(messageDiv);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+  // Enviar via WebSocket
   stompClient.publish({
     destination: "/app/chat.enviar",
     body: JSON.stringify({
@@ -281,10 +320,17 @@ function sendMessage() {
 
 // Handler para nova mensagem recebida
 function handleNewMessage(msg) {
+  // Ignorar mensagens que eu mesmo enviei (já foram adicionadas no sendMessage)
+  if (msg.remetenteId === currentUser.id) {
+    // Apenas atualizar lista de conversas para refletir a última mensagem
+    loadConversations();
+    return;
+  }
+
   // Se é da conversa atual, adicionar na tela
   if (msg.conversaId === currentConversaId) {
     const messageDiv = document.createElement("div");
-    messageDiv.className = `message ${msg.remetenteId === currentUser.id ? 'sent' : 'received'}`;
+    messageDiv.className = "message received";
     messageDiv.innerHTML = `
       <div class="message-content">${escapeHtml(msg.conteudo)}</div>
       <div class="message-time">${formatTime(msg.createdAt)}</div>
@@ -297,12 +343,11 @@ function handleNewMessage(msg) {
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    // Marcar como lida se for mensagem recebida
-    if (msg.remetenteId !== currentUser.id) {
-      markAsRead(currentConversaId);
-    }
+    // Marcar como lida
+    markAsRead(currentConversaId);
   } else {
-    // Mensagem de outra conversa - notificar
+    // Mensagem de outra conversa - notificar com toast
+    showToastNotification(msg);
     playNotificationSound();
     updateTitleWithUnread();
   }
@@ -312,18 +357,62 @@ function handleNewMessage(msg) {
 }
 
 // Handler para indicador de digitando
+let savedUserStatus = null; // Guardar status original para restaurar
+let savedConversationPreviews = {}; // Guardar preview original das conversas
+
 function handleTypingIndicator(data) {
+  // Atualizar preview na lista de conversas (sidebar)
+  const conversationItem = document.querySelector(`.conversation-item[data-id="${data.conversaId}"]`);
+  if (conversationItem) {
+    const previewElement = conversationItem.querySelector('.conversation-preview');
+    if (previewElement) {
+      if (data.digitando) {
+        // Salvar preview original se ainda não salvou
+        if (!savedConversationPreviews[data.conversaId]) {
+          savedConversationPreviews[data.conversaId] = previewElement.innerHTML;
+        }
+        previewElement.innerHTML = '<span class="typing-preview">digitando...</span>';
+      } else {
+        // Restaurar preview original
+        if (savedConversationPreviews[data.conversaId]) {
+          previewElement.innerHTML = savedConversationPreviews[data.conversaId];
+          delete savedConversationPreviews[data.conversaId];
+        }
+      }
+    }
+  }
+
+  // Atualizar header e indicador se for a conversa atual
   if (data.conversaId === currentConversaId) {
     if (data.digitando) {
+      // Mostrar indicador de digitando no rodapé
       typingUser.textContent = data.usuarioNome;
-      typingIndicator.style.display = "block";
+      typingIndicator.style.display = "flex";
+
+      // Atualizar status no header (estilo WhatsApp)
+      if (!savedUserStatus) {
+        savedUserStatus = {
+          text: chatUserStatus.textContent,
+          className: chatUserStatus.className
+        };
+      }
+      chatUserStatus.textContent = "digitando...";
+      chatUserStatus.className = "user-status online";
     } else {
+      // Esconder indicador de digitando
       typingIndicator.style.display = "none";
+
+      // Restaurar status original no header
+      if (savedUserStatus) {
+        chatUserStatus.textContent = savedUserStatus.text;
+        chatUserStatus.className = savedUserStatus.className;
+        savedUserStatus = null;
+      }
     }
   }
 }
 
-// Handler para eventos de presença
+// Handler para eventos de presenca
 function handlePresenceEvent(event) {
   if (event.online) {
     usersOnline.add(event.clienteId);
@@ -347,7 +436,7 @@ function handlePresenceEvent(event) {
   renderConversations();
 }
 
-// Notificar que está digitando
+// Notificar que esta digitando
 function notifyTyping() {
   if (!currentConversaId || !stompClient?.connected) return;
 
@@ -359,16 +448,18 @@ function notifyTyping() {
     })
   });
 
-  // Parar de notificar após 2 segundos
+  // Parar de notificar apos 2 segundos
   clearTimeout(typingTimeout);
   typingTimeout = setTimeout(() => {
-    stompClient.publish({
-      destination: "/app/chat.digitando",
-      body: JSON.stringify({
-        conversaId: currentConversaId,
-        digitando: false
-      })
-    });
+    if (stompClient?.connected) {
+      stompClient.publish({
+        destination: "/app/chat.digitando",
+        body: JSON.stringify({
+          conversaId: currentConversaId,
+          digitando: false
+        })
+      });
+    }
   }, 2000);
 }
 
@@ -386,7 +477,7 @@ async function markAsRead(conversaId) {
   }
 }
 
-// Carregar lista de usuários Premium
+// Carregar lista de usuarios Premium
 async function loadUsers() {
   const token = localStorage.getItem("userToken");
 
@@ -401,14 +492,14 @@ async function loadUsers() {
       renderUsers(users);
     }
   } catch (error) {
-    console.error("Erro ao carregar usuários:", error);
+    console.error("Erro ao carregar usuarios:", error);
   }
 }
 
-// Renderizar lista de usuários
+// Renderizar lista de usuarios
 function renderUsers(users) {
   if (users.length === 0) {
-    usersItems.innerHTML = '<p class="empty-state">Nenhum usuário encontrado</p>';
+    usersItems.innerHTML = '<p class="empty-state">Nenhum usuario encontrado</p>';
     return;
   }
 
@@ -464,7 +555,7 @@ async function startConversation(userId) {
   }
 }
 
-// Mostrar lista de usuários
+// Mostrar lista de usuarios
 function showUsers() {
   conversationsList.style.display = "none";
   usersList.style.display = "flex";
@@ -495,7 +586,7 @@ function setupEventListeners() {
   btnNewChat.addEventListener("click", showUsers);
   btnBackConversations.addEventListener("click", showConversations);
 
-  // Visibilidade da página
+  // Visibilidade da pagina
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
       document.title = originalTitle;
@@ -503,7 +594,7 @@ function setupEventListeners() {
   });
 }
 
-// Utilitários
+// Utilitarios
 function formatTime(dateString) {
   const date = new Date(dateString);
   const now = new Date();
@@ -538,6 +629,75 @@ function updateTitleWithUnread() {
   if (document.hidden) {
     document.title = "(Nova mensagem) " + originalTitle;
   }
+}
+
+// Toast Notification - Estilo WhatsApp
+function showToastNotification(msg) {
+  const toastContainer = document.getElementById('toast-container');
+  if (!toastContainer) return;
+
+  // Buscar info do remetente na lista de conversas
+  const conv = conversations.find(c => c.id === msg.conversaId);
+  const senderName = conv?.outroUsuarioNome || 'Novo';
+  const senderAvatar = conv?.outroUsuarioAvatar;
+  const senderInitial = senderName.charAt(0).toUpperCase();
+
+  // Criar elemento toast
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <div class="toast-avatar">
+      ${senderAvatar ? `<img src="${senderAvatar}" alt="${senderName}">` : senderInitial}
+    </div>
+    <div class="toast-content">
+      <div class="toast-header">
+        <span class="toast-sender">${escapeHtml(senderName)}</span>
+        <span class="toast-time">Agora</span>
+      </div>
+      <div class="toast-message">${escapeHtml(msg.conteudo)}</div>
+    </div>
+    <button class="toast-close">&times;</button>
+  `;
+
+  // Click para abrir conversa
+  toast.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('toast-close')) {
+      if (conv) {
+        openConversation(conv.id, conv.outroUsuarioId, conv.outroUsuarioNome);
+      }
+      removeToast(toast);
+    }
+  });
+
+  // Botao fechar
+  toast.querySelector('.toast-close').addEventListener('click', (e) => {
+    e.stopPropagation();
+    removeToast(toast);
+  });
+
+  // Adicionar ao container
+  toastContainer.appendChild(toast);
+
+  // Auto-remover apos 5 segundos
+  setTimeout(() => {
+    removeToast(toast);
+  }, 5000);
+
+  // Limitar a 3 toasts
+  const toasts = toastContainer.querySelectorAll('.toast');
+  if (toasts.length > 3) {
+    removeToast(toasts[0]);
+  }
+}
+
+function removeToast(toast) {
+  if (!toast || !toast.parentNode) return;
+  toast.classList.add('toast-exit');
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.parentNode.removeChild(toast);
+    }
+  }, 300);
 }
 
 // Iniciar

@@ -83,9 +83,16 @@
         </div>
       </div>
 
-      <!-- Indicador digitando -->
+      <!-- Indicador digitando - Estilo WhatsApp -->
       <div id="typing-indicator" class="typing-indicator" style="display:none">
-        <span id="typing-user"></span> está digitando...
+        <div class="typing-bubble">
+          <span class="typing-text"><span id="typing-user"></span> está digitando</span>
+          <div class="typing-dots">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
       </div>
 
       <!-- Input de mensagem -->
@@ -101,6 +108,9 @@
     </div>
   </div>
 
+  <!-- Container de Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
   <!-- Áudio de notificação -->
   <audio id="notification-sound" preload="auto">
     <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleA4VO6zc4MCDDRZNrd3cpnQMGUmu3Np8DRSM2NbAdgcRgtvOvnwDDnveyLqCARB33ce3hQEPcdvDtoYCEG/awLSIBQ9s1723iwYPadO5tI0HD2fQuLGPCA9l0LaujQcPY8+1rI0ID2HNtKuLCA9gzLOqiggPX8uyqYoID17LsqiJCA9dy7GniQgPXMqwpoYJD1zKr6WGCg9byq+khgoPWsmupIYKD1rJrqOFCg9ayK2jhQoPWcitooUKD1nIrKKFCg9YyKyihAoPWMisoYQLDw==" type="audio/wav">
@@ -110,6 +120,7 @@
   <script src="/assets/js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
-  <script type="module" src="/views/pessoal/js/chat.js"></script>
+  <script src="/assets/js/presenca.js"></script>
+  <script src="/views/pessoal/js/chat.js"></script>
 </body>
 </html>

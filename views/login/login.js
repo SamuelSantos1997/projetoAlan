@@ -50,7 +50,23 @@ async function login(email, senha) {
     })
   });
 
-  const json = await resp.json();
+  // Tratar erro 429 (Too Many Requests)
+  if (resp.status === 429) {
+    throw new Error("Muitas tentativas de login. Aguarde um minuto e tente novamente.");
+  }
+
+  // Tratar erro 500 ou outros erros de servidor
+  if (resp.status >= 500) {
+    throw new Error("Servidor indisponível. Tente novamente mais tarde.");
+  }
+
+  // Tentar parsear JSON
+  let json;
+  try {
+    json = await resp.json();
+  } catch (e) {
+    throw new Error("Erro de comunicação com o servidor. Tente novamente.");
+  }
 
   if (!json.success) {
     throw new Error(json.message || "Erro ao fazer login");

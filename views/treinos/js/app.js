@@ -116,6 +116,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return mapping[key] || 0;
     }
 
+    // Mapeamento de ícones por tipo de exercício
+    const exerciseIcons = {
+        'agachamento': '🦵', 'leg press': '🦵', 'extensora': '🦵', 'flexora': '🦵', 'hack': '🦵',
+        'afundo': '🦿', 'stiff': '🦿', 'panturrilha': '🦶',
+        'rosca': '💪', 'bíceps': '💪', 'tríceps': '💪', 'mergulho': '💪',
+        'supino': '🏋️', 'crucifixo': '🏋️', 'voador': '🏋️', 'peck': '🏋️',
+        'puxada': '🔙', 'puxador': '🔙', 'remada': '🔙', 'barra fixa': '🔙', 'pullover': '🔙',
+        'desenvolvimento': '🎯', 'elevação': '🎯', 'arnold': '🎯', 'encolhimento': '🎯', 'face pull': '🎯',
+        'prancha': '🧘', 'abdominal': '🧘', 'mountain': '🧘', 'russian': '🧘', 'dragon': '🧘', 'hollow': '🧘', 'ab wheel': '🧘', 'landmine': '🧘',
+        'hip thrust': '🍑', 'abdutora': '🍑', 'adutora': '🍑', 'glúteo': '🍑', 'coice': '🍑', 'step up': '🍑', 'elevação pélvica': '🍑',
+        'terra': '🏋️‍♂️', 'levantamento': '🏋️‍♂️'
+    };
+
+    function getExerciseIcon(exerciseName) {
+        const name = exerciseName.toLowerCase();
+        for (const [key, icon] of Object.entries(exerciseIcons)) {
+            if (name.includes(key)) return icon;
+        }
+        return '💪';
+    }
+
     // --- Dados da Aplicação ---
     const workoutData = {
         niveles: [
@@ -1130,9 +1151,10 @@ document.addEventListener('DOMContentLoaded', () => {
         treino.exercicios.forEach(exercicio => {
             const exerciseItem = document.createElement('div');
             exerciseItem.className = 'exercise-item';
+            const icon = getExerciseIcon(exercicio.nome);
             exerciseItem.innerHTML = `
-                <div class="exercise-image">
-                    <img src="${exercicio.imagem}" alt="${exercicio.nome}" loading="lazy" onerror="this.style.display='none'">
+                <div class="exercise-icon-box">
+                    <span class="exercise-emoji">${icon}</span>
                 </div>
                 <div class="exercise-info">
                     <h4>${exercicio.nome}</h4>
@@ -1327,9 +1349,10 @@ document.addEventListener('DOMContentLoaded', () => {
         treino.exercicios.forEach((exercicio) => {
             const exerciseItem = document.createElement('div');
             exerciseItem.className = 'exercise-item';
+            const icon = getExerciseIcon(exercicio.nome);
             exerciseItem.innerHTML = `
-                <div class="exercise-image">
-                    <img src="${exercicio.imagem}" alt="${exercicio.nome}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:rgba(34,197,94,0.1);border-radius:8px;font-size:1.5rem;\\'>💪</div>'">
+                <div class="exercise-icon-box">
+                    <span class="exercise-emoji">${icon}</span>
                 </div>
                 <div class="exercise-info">
                     <h4>${exercicio.nome}</h4>

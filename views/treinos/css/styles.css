@@ -300,6 +300,32 @@ body {
     border-radius: 8px;
 }
 
+/* Caixa de ícone do exercício */
+.exercise-icon-box {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05));
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.exercise-item:hover .exercise-icon-box {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(34, 197, 94, 0.1));
+    border-color: rgba(34, 197, 94, 0.4);
+    transform: scale(1.05);
+}
+
+.exercise-emoji {
+    font-size: 1.8rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
 .exercise-info {
     flex: 1;
 }
@@ -328,11 +354,21 @@ body {
         flex-direction: column;
         text-align: center;
     }
-    
+
     .exercise-image {
         width: 100px;
         height: 100px;
         margin: 0 auto;
+    }
+
+    .exercise-icon-box {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 0.5rem;
+    }
+
+    .exercise-emoji {
+        font-size: 1.5rem;
     }
 }
 

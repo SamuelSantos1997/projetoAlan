@@ -251,20 +251,77 @@ function updatePremiumDisplay(isPremium, premiumAte) {
   }
 }
 
-// avatar preview
-avatarInput.addEventListener("change", (e) => {
+// Função para redimensionar imagem antes de enviar
+function resizeImage(file, maxWidth = 300, maxHeight = 300, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+
+        // Calcular novas dimensões mantendo proporção
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Converter para base64 com compressão
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// avatar preview com redimensionamento
+avatarInput.addEventListener("change", async (e) => {
   const file = e.target.files?.[0];
   if(!file) return;
-  if(file.size > 5 * 1024 * 1024){
-    alert("Arquivo muito grande. Máximo 5MB.");
+  if(file.size > 10 * 1024 * 1024){
+    alert("Arquivo muito grande. Máximo 10MB.");
     avatarInput.value = "";
     return;
   }
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    avatarPreview.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
+
+  try {
+    // Redimensionar a imagem para 300x300 max com 80% de qualidade
+    const resizedDataUrl = await resizeImage(file, 300, 300, 0.8);
+    avatarPreview.src = resizedDataUrl;
+
+    // Verificar tamanho do resultado (deve ser < 500KB)
+    const sizeKB = Math.round((resizedDataUrl.length * 3) / 4 / 1024);
+    console.log(`Imagem redimensionada: ${sizeKB}KB`);
+
+    if (sizeKB > 500) {
+      // Se ainda for grande, comprimir mais
+      const moreCompressed = await resizeImage(file, 200, 200, 0.6);
+      avatarPreview.src = moreCompressed;
+      console.log(`Imagem recomprimida: ${Math.round((moreCompressed.length * 3) / 4 / 1024)}KB`);
+    }
+  } catch (err) {
+    console.error("Erro ao processar imagem:", err);
+    alert("Erro ao processar imagem. Tente outro arquivo.");
+    avatarInput.value = "";
+  }
 });
 removerFoto.addEventListener("click", () => {
   avatarPreview.src = "./img/avatar-placeholder.svg";
@@ -288,6 +345,15 @@ async function fetchCliente(){
 }
 
 async function updateCliente(id, payload){
+  // Log para debug do tamanho do payload
+  const payloadSize = JSON.stringify(payload).length;
+  console.log(`Tamanho do payload: ${Math.round(payloadSize / 1024)}KB`);
+
+  // Se a imagem for muito grande, avisar
+  if (payload.avatarDataUrl && payload.avatarDataUrl.length > 500000) {
+    console.warn("Imagem muito grande, pode causar erro 400");
+  }
+
   const resp = await fetch(`${BFF_BASE_URL}/bff/clientes/${id}`, {
     method: "PUT",
     headers: {
@@ -300,7 +366,12 @@ async function updateCliente(id, payload){
   const json = await resp.json();
 
   if (!json.success){
-    throw new Error(json.message || "Erro ao salvar perfil");
+    // Log detalhado do erro
+    console.error("Resposta de erro:", json);
+    const errorMsg = json.errors
+      ? Object.values(json.errors).flat().join(", ")
+      : (json.message || json.error || "Erro ao salvar perfil");
+    throw new Error(errorMsg);
   }
   return json.data;
 }
@@ -574,6 +645,116 @@ if (senhaForm) {
       alert("Falha ao alterar senha: " + err.message);
       btnAlterarSenha.textContent = "Alterar senha";
       btnAlterarSenha.disabled = false;
+    }
+  });
+}
+
+// ============ EXCLUIR CONTA ============
+
+const modalExcluirConta = document.getElementById("modalExcluirConta");
+const btnExcluirConta = document.getElementById("btnExcluirConta");
+const btnCancelarExclusao = document.getElementById("btnCancelarExclusao");
+const btnConfirmarExclusao = document.getElementById("btnConfirmarExclusao");
+const senhaConfirmacao = document.getElementById("senhaConfirmacao");
+const modalBackdrop = modalExcluirConta?.querySelector(".modal-backdrop");
+
+// Abrir modal
+if (btnExcluirConta) {
+  btnExcluirConta.addEventListener("click", () => {
+    modalExcluirConta.hidden = false;
+    senhaConfirmacao.value = "";
+    senhaConfirmacao.focus();
+  });
+}
+
+// Fechar modal (cancelar ou backdrop)
+function fecharModalExclusao() {
+  modalExcluirConta.hidden = true;
+  senhaConfirmacao.value = "";
+}
+
+if (btnCancelarExclusao) {
+  btnCancelarExclusao.addEventListener("click", fecharModalExclusao);
+}
+
+if (modalBackdrop) {
+  modalBackdrop.addEventListener("click", fecharModalExclusao);
+}
+
+// Fechar com ESC
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modalExcluirConta && !modalExcluirConta.hidden) {
+    fecharModalExclusao();
+  }
+});
+
+// Toggle senha no modal
+const toggleSenhaConfirmacao = modalExcluirConta?.querySelector(".toggle-password");
+if (toggleSenhaConfirmacao) {
+  toggleSenhaConfirmacao.addEventListener("click", () => {
+    const eyeOpen = toggleSenhaConfirmacao.querySelector(".eye-open");
+    const eyeClosed = toggleSenhaConfirmacao.querySelector(".eye-closed");
+
+    if (senhaConfirmacao.type === "password") {
+      senhaConfirmacao.type = "text";
+      eyeOpen.style.display = "none";
+      eyeClosed.style.display = "block";
+    } else {
+      senhaConfirmacao.type = "password";
+      eyeOpen.style.display = "block";
+      eyeClosed.style.display = "none";
+    }
+  });
+}
+
+// Função para excluir conta via API
+async function excluirConta(senha) {
+  const resp = await fetch(`${BFF_BASE_URL}/bff/clientes/${CLIENTE_ID}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": `Bearer ${AUTH_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ senha: senha })
+  });
+
+  const json = await resp.json();
+
+  if (!resp.ok || !json.success) {
+    throw new Error(json.message || "Erro ao excluir conta");
+  }
+
+  return json;
+}
+
+// Confirmar exclusão
+if (btnConfirmarExclusao) {
+  btnConfirmarExclusao.addEventListener("click", async () => {
+    const senha = senhaConfirmacao.value;
+
+    if (!senha) {
+      alert("Digite sua senha para confirmar a exclusão");
+      senhaConfirmacao.focus();
+      return;
+    }
+
+    try {
+      btnConfirmarExclusao.disabled = true;
+      btnConfirmarExclusao.textContent = "Excluindo...";
+
+      await excluirConta(senha);
+
+      // Limpar localStorage e redirecionar
+      localStorage.clear();
+
+      alert("Sua conta foi excluída com sucesso.");
+      window.location.href = "/views/login/index.html";
+
+    } catch (err) {
+      console.error("Erro ao excluir conta:", err);
+      alert("Falha ao excluir conta: " + err.message);
+      btnConfirmarExclusao.textContent = "Excluir permanentemente";
+      btnConfirmarExclusao.disabled = false;
     }
   });
 }

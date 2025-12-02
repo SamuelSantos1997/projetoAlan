@@ -11,8 +11,8 @@ const CONFIG = {
 
   // Para produção (Railway):
   BFF_BASE_URL: "https://fictional-system-bff-gym-production.up.railway.app/api",
-  BACKEND_URL: "https://fictional-system-back-end-gym-production.up.railway.app:8080",
-  WS_URL: "http://localhost:8080/ws",
+  BACKEND_URL: "https://fictional-system-back-end-gym-production.up.railway.app",
+  WS_URL: "https://fictional-system-back-end-gym-production.up.railway.app/ws",
 };
 
 // Exporta as variáveis globais para compatibilidade

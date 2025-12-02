@@ -10,8 +10,8 @@ const CONFIG = {
   // WS_URL: "http://localhost:8080/ws",
 
   // Para produção (Railway):
-  BFF_BASE_URL: "http://localhost:8000/api",
-  BACKEND_URL: "http://localhost:8080",
+  BFF_BASE_URL: "https://fictional-system-bff-gym-production.up.railway.app/api",
+  BACKEND_URL: "https://fictional-system-back-end-gym-production.up.railway.app:8080",
   WS_URL: "http://localhost:8080/ws",
 };
 

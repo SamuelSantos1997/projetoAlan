@@ -1,4 +1,4 @@
-const BFF_BASE_URL = "http://localhost:8000/api";
+// URL vem do config.js (importado no HTML)
 
 (function() {
   const currentPlanEl = document.getElementById("current-plan");

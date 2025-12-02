@@ -1,31 +1,115 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FitPanel — Chat Premium</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/views/pessoal/css/style.css">
+</head>
+<body>
+  <div id="navbar"></div>
+  <script src="/assets/js/injectNavbar.js"></script>
 
-<!doctype html><html lang="pt-BR"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>FitPanel — Pessoal da Academia</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/base.css">
-<link rel="stylesheet" href="/views/pessoal/css/style.css">
-</head><body>
-<div id="navbar"></div><script src="/assets/js/injectNavbar.js"></script>
-<div class="container chat card">
-  <div class="sidebar">
-    <label for="sel-gym">Selecione sua academia</label>
-    <select id="sel-gym" class="input" style="margin-top:6px"></select>
-    <div class="user-list" id="user-list"></div>
-  </div>
-  <div class="room">
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <select id="sel-user" class="input" style="max-width:260px"></select>
-      <span class="badge">Chat comunitário da academia</span>
+  <!-- Aviso para não-premium -->
+  <div id="premium-required" class="container card premium-required" style="display:none">
+    <div class="premium-required-icon">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
     </div>
-    <div id="messages" class="messages"></div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <input id="input-msg" class="input" placeholder="Escreva uma mensagem..." />
-      <button class="btn btn-primary" id="btn-send">Enviar</button>
+    <h2>Chat Exclusivo Premium</h2>
+    <p>Assine o plano Premium para conversar com outros membros da academia em tempo real!</p>
+    <a href="/views/premium/index.html" class="btn btn-primary">Assinar Premium</a>
+  </div>
+
+  <!-- Chat principal -->
+  <div id="chat-container" class="container chat-layout card" style="display:none">
+    <!-- Sidebar: Lista de usuários/conversas -->
+    <div class="chat-sidebar">
+      <div class="sidebar-header">
+        <h3>Conversas</h3>
+        <button id="btn-new-chat" class="btn-icon" title="Nova conversa">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Lista de conversas -->
+      <div id="conversations-list" class="conversations-list">
+        <p class="empty-state">Nenhuma conversa ainda</p>
+      </div>
+
+      <!-- Lista de usuários (para nova conversa) -->
+      <div id="users-list" class="users-list" style="display:none">
+        <div class="users-header">
+          <button id="btn-back-conversations" class="btn-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <h4>Usuários Premium</h4>
+        </div>
+        <div id="users-items"></div>
+      </div>
+    </div>
+
+    <!-- Área de chat -->
+    <div class="chat-main">
+      <!-- Header do chat -->
+      <div id="chat-header" class="chat-header" style="display:none">
+        <div class="chat-user-info">
+          <div class="user-avatar" id="chat-avatar"></div>
+          <div>
+            <span class="user-name" id="chat-user-name"></span>
+            <span class="user-status" id="chat-user-status"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensagens -->
+      <div id="messages-container" class="messages-container">
+        <div class="empty-chat">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <p>Selecione uma conversa ou inicie uma nova</p>
+        </div>
+      </div>
+
+      <!-- Indicador digitando -->
+      <div id="typing-indicator" class="typing-indicator" style="display:none">
+        <span id="typing-user"></span> está digitando...
+      </div>
+
+      <!-- Input de mensagem -->
+      <div id="message-input-container" class="message-input-container" style="display:none">
+        <input type="text" id="message-input" class="input" placeholder="Digite sua mensagem..." />
+        <button id="btn-send" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
-</div>
-<footer>As mensagens são salvas localmente por academia (apenas para demo).</footer>
-<script type="module" src="/views/pessoal/js/pessoal.js"></script>
-</body></html>
+
+  <!-- Áudio de notificação -->
+  <audio id="notification-sound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleA4VO6zc4MCDDRZNrd3cpnQMGUmu3Np8DRSM2NbAdgcRgtvOvnwDDnveyLqCARB33ce3hQEPcdvDtoYCEG/awLSIBQ9s1723iwYPadO5tI0HD2fQuLGPCA9l0LaujQcPY8+1rI0ID2HNtKuLCA9gzLOqiggPX8uyqYoID17LsqiJCA9dy7GniQgPXMqwpoYJD1zKr6WGCg9byq+khgoPWsmupIYKD1rJrqOFCg9ayK2jhQoPWcitooUKD1nIrKKFCg9YyKyihAoPWMisoYQLDw==" type="audio/wav">
+  </audio>
+
+  <!-- Scripts -->
+  <script src="/assets/js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+  <script type="module" src="/views/pessoal/js/chat.js"></script>
+</body>
+</html>

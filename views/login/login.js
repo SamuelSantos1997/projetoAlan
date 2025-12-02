@@ -1,4 +1,4 @@
-const BFF_BASE_URL = "http://localhost:8000/api";
+// URL vem do config.js (importado no HTML)
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -6,18 +6,37 @@ const form = $("#loginForm");
 const emailInput = $("#email");
 const senhaInput = $("#senha");
 const btnLogin = $("#btnLogin");
+const btnText = $(".btn-text");
+const btnLoading = $(".btn-loading");
 const errorMessage = $("#errorMessage");
+const errorMessageText = $("#errorMessage span");
+const togglePasswordBtn = $(".toggle-password");
+
+// Toggle mostrar/esconder senha
+togglePasswordBtn?.addEventListener("click", () => {
+  const type = senhaInput.type === "password" ? "text" : "password";
+  senhaInput.type = type;
+  togglePasswordBtn.querySelector("i").className =
+    type === "password" ? "fas fa-eye" : "fas fa-eye-slash";
+});
 
 // Função para mostrar erro
 function showError(message) {
-  errorMessage.textContent = message;
+  errorMessageText.textContent = message;
   errorMessage.hidden = false;
 }
 
 // Função para esconder erro
 function hideError() {
   errorMessage.hidden = true;
-  errorMessage.textContent = "";
+  errorMessageText.textContent = "";
+}
+
+// Função para mostrar loading
+function setLoading(loading) {
+  btnLogin.disabled = loading;
+  btnText.hidden = loading;
+  btnLoading.hidden = !loading;
 }
 
 // Função de login
@@ -54,8 +73,7 @@ form.addEventListener("submit", async (e) => {
   }
 
   try {
-    btnLogin.disabled = true;
-    btnLogin.textContent = "Entrando...";
+    setLoading(true);
 
     const userData = await login(email, senha);
 
@@ -72,8 +90,7 @@ form.addEventListener("submit", async (e) => {
   } catch (err) {
     console.error("Erro ao fazer login:", err);
     showError(err.message);
-    btnLogin.textContent = "Entrar";
-    btnLogin.disabled = false;
+    setLoading(false);
   }
 });
 

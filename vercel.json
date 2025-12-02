@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/login", "destination": "/views/login/index.html" },
+    { "source": "/cadastro", "destination": "/views/cadastro/index.html" },
+    { "source": "/perfil", "destination": "/views/perfil/index.html" },
+    { "source": "/pessoal", "destination": "/views/pessoal/index.html" },
+    { "source": "/frequencia", "destination": "/views/home/frequencia.html" },
+    { "source": "/treinos", "destination": "/views/treinos/index.html" },
+    { "source": "/premium", "destination": "/views/premium/index.html" },
+    { "source": "/premium/sucesso", "destination": "/views/premium/sucesso.html" }
+  ]
+}
